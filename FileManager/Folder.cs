@@ -43,7 +43,6 @@ namespace FileManager
 
         #endregion
 
-
         #region Méthodes
 
 

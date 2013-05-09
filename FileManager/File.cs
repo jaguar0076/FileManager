@@ -16,7 +16,6 @@ namespace FileManager
 
         #endregion
 
-
         #region Constructeurs
 
         public File(string FileName, string FilePath, long FileLength, DateTime FileDateCreation, DateTime FileDateModification, string FileExtension, Folder FileParentFolder)
@@ -35,9 +34,7 @@ namespace FileManager
 
         #endregion
 
-
         #region Méthodes
-
 
         #region Getters/Setters
 
@@ -63,7 +60,6 @@ namespace FileManager
         { get { return this._FileParentFolder; } set { this._FileParentFolder = value; } }
 
         #endregion
-
 
         #endregion
     }

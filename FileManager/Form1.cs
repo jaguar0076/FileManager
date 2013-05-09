@@ -113,6 +113,8 @@ namespace FileManager
                     FilesList.Add(new File(fi.Name, fi.FullName, fi.Length, fi.CreationTime, fi.LastWriteTime, fi.Extension, FoldersList[FoldersList.Count - 1]));
                 }
 
+                FoldersList[FoldersList.Count - 1].FolderLength = FilesList.Where(o => o.FileParentFolder == FoldersList[FoldersList.Count - 1]).Sum(o => o.FileLength);
+
                 foreach (DirectoryInfo di in ParentDir.GetDirectories().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
                     DirSearch(di.FullName, FoldersList[FoldersList.Count - 1]);

@@ -115,13 +115,15 @@ namespace FileManager
 
                 FoldersList[FoldersList.Count - 1].FolderLength = FilesList.Where(o => o.FileParentFolder == FoldersList[FoldersList.Count - 1]).Sum(o => o.FileLength);
 
+                Invoke(new set_Text(Append_Text), "Folder: " + FoldersList[FoldersList.Count - 1].FolderName + " length: " + FoldersList[FoldersList.Count - 1].FolderLength);
+
                 foreach (DirectoryInfo di in ParentDir.GetDirectories().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
                     DirSearch(di.FullName, FoldersList[FoldersList.Count - 1]);
                 }
             }
             catch (Exception excpt)
-            { Append_Text(excpt.Message); }
+            { Invoke(new set_Text(Append_Text), excpt.Message); }
         }
 
         #region Utils

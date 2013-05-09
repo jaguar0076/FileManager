@@ -93,6 +93,8 @@ namespace FileManager
                 try
                 {
                     DirSearch(Invoke(new get_Text(Get_Text), textBox2).ToString(), null);
+
+                    ComputeFolderLength(FoldersList);
                 }
                 catch (Exception expt) { Invoke(new set_Text(Append_Text), expt.Message); }
             }
@@ -110,12 +112,8 @@ namespace FileManager
 
                 foreach (FileInfo fi in ParentDir.GetFiles().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
-                    FilesList.Add(new File(fi.Name, fi.FullName, fi.Length, fi.CreationTime, fi.LastWriteTime, fi.Extension, FoldersList[FoldersList.Count - 1]));
+                    FilesList.Add(new File(fi.Name, fi.FullName, fi.Length, fi.CreationTime, fi.LastWriteTime, fi.Extension, FoldersList[FoldersList.Count - 1], null));
                 }
-
-                FoldersList[FoldersList.Count - 1].FolderLength = FilesList.Where(o => o.FileParentFolder == FoldersList[FoldersList.Count - 1]).Sum(o => o.FileLength) + FoldersList.Where(o => o.FolderParent == FoldersList[FoldersList.Count - 1]).Sum(o => o.FolderLength);
-
-                Invoke(new set_Text(Append_Text), "Folder: " + FoldersList[FoldersList.Count - 1].FolderName + " length: " + FoldersList[FoldersList.Count - 1].FolderLength);
 
                 foreach (DirectoryInfo di in ParentDir.GetDirectories().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
@@ -124,6 +122,14 @@ namespace FileManager
             }
             catch (Exception excpt)
             { Invoke(new set_Text(Append_Text), excpt.Message); }
+        }
+
+        private void ComputeFolderLength(ObservableCollection<Folder> FoldersList)
+        {
+            foreach (Folder f in FoldersList)
+            {
+                f.FolderLength = FoldersList.Where(o => o.FolderParent == f).Sum(o => o.FolderLength) + FilesList.Where(o => o.FileParentFolder == f).Sum(o => o.FileLength);
+            }
         }
 
         #region Utils

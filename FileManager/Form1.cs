@@ -113,7 +113,7 @@ namespace FileManager
                     FilesList.Add(new File(fi.Name, fi.FullName, fi.Length, fi.CreationTime, fi.LastWriteTime, fi.Extension, FoldersList[FoldersList.Count - 1]));
                 }
 
-                FoldersList[FoldersList.Count - 1].FolderLength = FilesList.Where(o => o.FileParentFolder == FoldersList[FoldersList.Count - 1]).Sum(o => o.FileLength);
+                FoldersList[FoldersList.Count - 1].FolderLength = FilesList.Where(o => o.FileParentFolder == FoldersList[FoldersList.Count - 1]).Sum(o => o.FileLength) + FoldersList.Where(o => o.FolderParent == FoldersList[FoldersList.Count - 1]).Sum(o => o.FolderLength);
 
                 Invoke(new set_Text(Append_Text), "Folder: " + FoldersList[FoldersList.Count - 1].FolderName + " length: " + FoldersList[FoldersList.Count - 1].FolderLength);
 

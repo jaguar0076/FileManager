@@ -1,14 +1,14 @@
 ﻿using System;
 
-//we need id3 tag to get the entire informations
-
 namespace FileManager
 {
     class File
     {
         #region Variables
 
-        private string _FileName, _FilePath, _FileExtension, _Title;
+        private string _FileName, _FilePath, _FileExtension, _Title, _Album, _Year;
+
+        private string[] _Artists;
 
         private long _FileLength;
 
@@ -20,7 +20,7 @@ namespace FileManager
 
         #region Constructeurs
 
-        public File(string FileName, string FilePath, long FileLength, DateTime FileDateCreation, DateTime FileDateModification, string FileExtension, Folder FileParentFolder, string Title)
+        public File(string FileName, string FilePath, long FileLength, DateTime FileDateCreation, DateTime FileDateModification, string FileExtension, Folder FileParentFolder, string Title, string Album, string Year, string[] Artists)
         {
             _FileName = FileName;
             _FilePath = FilePath;
@@ -30,6 +30,9 @@ namespace FileManager
             _FileExtension = FileExtension;
             _FileParentFolder = FileParentFolder;
             _Title = Title;
+            _Album = Album;
+            _Year = Year;
+            _Artists = Artists;
         }
 
         public File()
@@ -64,6 +67,15 @@ namespace FileManager
 
         public string Title
         { get { return this._Title; } set { this._Title = value; } }
+
+        public string Album
+        { get { return this._Album; } set { this._Album = value; } }
+
+        public string Year
+        { get { return this._Year; } set { this._Year = value; } }
+
+        public string[] Artists
+        { get { return this._Artists; } set { this._Artists = value; } }
 
         #endregion
 

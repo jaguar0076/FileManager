@@ -17,9 +17,9 @@ namespace FileManager
 
         private ObservableCollection<Folder> FoldersList = new ObservableCollection<Folder>();
 
-        private Thread myThread;
+        private Thread MyThread;
 
-
+        private string[] AudioExtensions = {".mp3",".wma",".m4a", ".flac"};
 
         #endregion
 
@@ -48,8 +48,8 @@ namespace FileManager
 
             if (state.ACLineStatus == ACLineStatus.Online || ((int)state.BatteryLifePercent) > 20)
             {
-                myThread = new Thread(new ThreadStart(Thread_Construct_Tree));
-                myThread.Start();
+                MyThread = new Thread(new ThreadStart(Thread_Construct_Tree));
+                MyThread.Start();
             }
         }
 
@@ -121,7 +121,7 @@ namespace FileManager
 
                     Invoke(new set_Text(Append_Text), ArrayToString(f.Tag.Performers));
 
-                    FilesList.Add(new File(fi.Name, fi.FullName, fi.Length, fi.CreationTime, fi.LastWriteTime, fi.Extension, FoldersList[FoldersList.Count - 1], null));
+                    FilesList.Add(new File(fi.Name, fi.FullName, fi.Length, fi.CreationTime, fi.LastWriteTime, fi.Extension, FoldersList[FoldersList.Count - 1], null, null, null, null));
                 }
 
                 foreach (DirectoryInfo di in ParentDir.GetDirectories().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))

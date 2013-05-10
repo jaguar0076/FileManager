@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using System.Text;
 
 namespace FileManager
 {
@@ -17,6 +18,8 @@ namespace FileManager
         private ObservableCollection<Folder> FoldersList = new ObservableCollection<Folder>();
 
         private Thread myThread;
+
+
 
         #endregion
 
@@ -96,7 +99,7 @@ namespace FileManager
 
                     ComputeFolderLength(FoldersList);
                 }
-                catch (Exception expt) { Invoke(new set_Text(Append_Text), expt.Message); }
+                catch (Exception ex) { Invoke(new set_Text(Append_Text), ex.Message); }
             }
         }
 
@@ -112,6 +115,12 @@ namespace FileManager
 
                 foreach (FileInfo fi in ParentDir.GetFiles().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
+                    TagLib.File f = TagLib.File.Create(fi.FullName);
+
+                    Invoke(new set_Text(Append_Text), ArrayToString(f.Tag.AlbumArtists));
+
+                    Invoke(new set_Text(Append_Text), ArrayToString(f.Tag.Performers));
+
                     FilesList.Add(new File(fi.Name, fi.FullName, fi.Length, fi.CreationTime, fi.LastWriteTime, fi.Extension, FoldersList[FoldersList.Count - 1], null));
                 }
 
@@ -120,8 +129,8 @@ namespace FileManager
                     DirSearch(di.FullName, FoldersList[FoldersList.Count - 1]);
                 }
             }
-            catch (Exception excpt)
-            { Invoke(new set_Text(Append_Text), excpt.Message); }
+            catch (Exception ex)
+            { Invoke(new set_Text(Append_Text), ex.Message); }
         }
 
         private void ComputeFolderLength(ObservableCollection<Folder> FoldersList)
@@ -136,12 +145,15 @@ namespace FileManager
 
         private void Append_Text(string msg)
         {
-            textBox1.Text = textBox1.Text + Environment.NewLine + msg;
+            if (msg != String.Empty && msg != null)
+            {
+                textBox1.Text = textBox1.Text + Environment.NewLine + msg;
+            }
         }
 
         private string Get_Text(Object o)
         {
-            string RtrnString = "";
+            string RtrnString = String.Empty;
 
             try
             {
@@ -151,6 +163,23 @@ namespace FileManager
             { Append_Text(ex.Message); }
 
             return RtrnString;
+        }
+
+        private string ArrayToString(string[] array)
+        {
+            string concat = String.Empty;
+
+            try
+            { concat = array.Aggregate(new StringBuilder("\a"), (current, next) => current.Append(", ").Append(next)).ToString().Replace("\a, ", string.Empty); }
+            catch (Exception ex)
+            { Append_Text(ex.Message); }
+
+            return concat;
+        }
+
+        private void ProcessFileInformations(FileInfo fio)
+        {
+
         }
 
         #endregion

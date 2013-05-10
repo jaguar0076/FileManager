@@ -19,7 +19,7 @@ namespace FileManager
 
         private Thread MyThread;
 
-        private string[] AudioExtensions = {".mp3",".wma",".m4a", ".flac"};
+        private string[] AudioExtensions = { ".mp3", ".wma", ".m4a", ".flac" };
 
         #endregion
 
@@ -177,9 +177,11 @@ namespace FileManager
             return concat;
         }
 
-        private void ProcessFileInformations(FileInfo fio)
+        private File ProcessFileInformations(FileInfo fio)
         {
+            TagLib.File f = TagLib.File.Create(fio.FullName);
 
+            return new File();
         }
 
         #endregion

@@ -4,7 +4,7 @@ namespace FileManager
 {
     class Folder
     {
-        #region variables
+        #region Variables
 
         private string _FolderName, _FolderPath;
 
@@ -26,16 +26,6 @@ namespace FileManager
             _FolderDateCreation = FolderDateCreation;
             _FolderDateModification = FolderDateModification;
             _FolderParent = FolderParent;
-        }
-
-        public Folder(string FolderName, string FolderPath, long FolderLength, DateTime FolderDateCreation, DateTime FolderDateModification)
-        {
-            _FolderName = FolderName;
-            _FolderPath = FolderPath;
-            _FolderLength = FolderLength;
-            _FolderDateCreation = FolderDateCreation;
-            _FolderDateModification = FolderDateModification;
-            _FolderParent = null;
         }
 
         public Folder()

@@ -3,9 +3,9 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using System.Text;
 
 namespace FileManager
 {
@@ -171,12 +171,12 @@ namespace FileManager
             return ConcatString;
         }
 
-        private File ProcessFileInformations(FileInfo fio, Folder Fold)
+        private File ProcessFileInformations(FileInfo fio, Folder fo)
         {//replace tag informations if exception
             try
             {
                 TagLib.File f = TagLib.File.Create(fio.FullName);
-                return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, Fold, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
+                return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, fo, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
             }
             catch (Exception ex)
             {

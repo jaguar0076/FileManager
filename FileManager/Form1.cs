@@ -172,10 +172,17 @@ namespace FileManager
         }
 
         private File ProcessFileInformations(FileInfo fio, Folder Fold)
-        {
-            TagLib.File f = TagLib.File.Create(fio.FullName);
-
-            return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, Fold, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
+        {//replace tag informations if exception
+            try
+            {
+                TagLib.File f = TagLib.File.Create(fio.FullName);
+                return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, Fold, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
+            }
+            catch (Exception ex)
+            {
+                Invoke(new set_Text(Append_Text), "Error while getting file name: " + ex.Message);
+                return new File();
+            }
         }
 
         #endregion

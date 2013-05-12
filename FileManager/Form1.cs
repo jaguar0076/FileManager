@@ -161,14 +161,14 @@ namespace FileManager
 
         private string ArrayToString(string[] array)
         {
-            string concat = String.Empty;
+            string ConcatString = String.Empty;
 
             try
-            { concat = array.Aggregate(new StringBuilder("\a"), (current, next) => current.Append(", ").Append(next)).ToString().Replace("\a, ", string.Empty); }
+            { ConcatString = array.Aggregate(new StringBuilder("\a"), (current, next) => current.Append(", ").Append(next)).ToString().Replace("\a, ", string.Empty); }
             catch (Exception ex)
             { Append_Text(ex.Message); }
 
-            return concat;
+            return ConcatString;
         }
 
         private File ProcessFileInformations(FileInfo fio, Folder Fold)

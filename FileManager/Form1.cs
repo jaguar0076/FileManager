@@ -115,13 +115,7 @@ namespace FileManager
 
                 foreach (FileInfo fi in ParentDir.GetFiles().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
-                    TagLib.File f = TagLib.File.Create(fi.FullName);
-
-                    Invoke(new set_Text(Append_Text), ArrayToString(f.Tag.AlbumArtists));
-
-                    Invoke(new set_Text(Append_Text), ArrayToString(f.Tag.Performers));
-
-                    FilesList.Add(new File(fi.Name, fi.FullName, fi.Length, fi.CreationTime, fi.LastWriteTime, fi.Extension, FoldersList[FoldersList.Count - 1], null, null, null, null));
+                    FilesList.Add(ProcessFileInformations(fi, FoldersList[FoldersList.Count - 1]));
                 }
 
                 foreach (DirectoryInfo di in ParentDir.GetDirectories().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
@@ -177,11 +171,11 @@ namespace FileManager
             return concat;
         }
 
-        private File ProcessFileInformations(FileInfo fio)
+        private File ProcessFileInformations(FileInfo fio, Folder Fold)
         {
             TagLib.File f = TagLib.File.Create(fio.FullName);
 
-            return new File();
+            return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, Fold, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
         }
 
         #endregion

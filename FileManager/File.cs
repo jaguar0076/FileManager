@@ -6,7 +6,9 @@ namespace FileManager
     {
         #region Variables
 
-        private string _FileName, _FilePath, _FileExtension, _Title, _Album, _Year;
+        private string _FileName, _FilePath, _FileExtension, _Title, _Album;
+
+        private uint _Year;
 
         private string[] _Artists;
 
@@ -20,7 +22,7 @@ namespace FileManager
 
         #region Constructeurs
 
-        public File(string FileName, string FilePath, long FileLength, DateTime FileDateCreation, DateTime FileDateModification, string FileExtension, Folder FileParentFolder, string Title, string Album, string Year, string[] Artists)
+        public File(string FileName, string FilePath, long FileLength, DateTime FileDateCreation, DateTime FileDateModification, string FileExtension, Folder FileParentFolder, string Title, string Album, uint Year, string[] Artists)
         {
             _FileName = FileName;
             _FilePath = FilePath;
@@ -71,7 +73,7 @@ namespace FileManager
         public string Album
         { get { return this._Album; } set { this._Album = value; } }
 
-        public string Year
+        public uint Year
         { get { return this._Year; } set { this._Year = value; } }
 
         public string[] Artists

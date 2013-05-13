@@ -107,18 +107,6 @@ namespace FileManager
 
         #region Utils
 
-        private string ArrayToString(string[] array)
-        {
-            string ConcatString = String.Empty;
-
-            try
-            { ConcatString = array.Aggregate(new StringBuilder("\a"), (current, next) => current.Append(", ").Append(next)).ToString().Replace("\a, ", string.Empty); }
-            catch (Exception ex)
-            { Append_Text(ex.StackTrace, textBox1); }
-
-            return ConcatString;
-        }
-
         private void DirSearch(string Dir, Folder Fold)
         {
             try
@@ -149,6 +137,36 @@ namespace FileManager
             }
         }
 
+        private string ArrayToString(string[] array)
+        {
+            string ConcatString = String.Empty;
+
+            try
+            { ConcatString = array.Aggregate(new StringBuilder("\a"), (current, next) => current.Append(", ").Append(next)).ToString().Replace("\a, ", string.Empty); }
+            catch (Exception ex)
+            { Append_Text(ex.StackTrace, textBox1); }
+
+            return ConcatString;
+        }
+
+        private File ProcessFileInformations(FileInfo fio, Folder fo)
+        {//replace tag informations if exception
+            try
+            {
+                TagLib.File f = TagLib.File.Create(fio.FullName);
+                return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, fo, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
+            }
+            catch (Exception ex)
+            {
+                Invoke(new set_Text(Append_Text), "Error while getting file: " + ex.StackTrace, textBox1);
+                return new File();
+            }
+        }
+
+        #endregion
+
+        #region String Functions
+
         private void Append_Text(string msg, Object o)
         {
             if (msg != String.Empty && msg != null)
@@ -169,23 +187,6 @@ namespace FileManager
             { Append_Text(ex.StackTrace, o); }
 
             return RtrnString;
-        }
-
-        private File ProcessFileInformations(FileInfo fio, Folder fo)
-        {//replace tag informations if exception
-            //if (AudioExtensions.Any(fio.Extension))
-
-            try
-            {
-                TagLib.File f = TagLib.File.Create(fio.FullName);
-
-                return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, fo, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
-            }
-            catch (Exception ex)
-            {
-                Invoke(new set_Text(Append_Text), "Error while getting file: " + ex.StackTrace, textBox1);
-                return new File();
-            }
         }
 
         #endregion

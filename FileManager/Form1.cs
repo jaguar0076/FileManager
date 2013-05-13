@@ -3,9 +3,9 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using System.Text;
 
 namespace FileManager
 {
@@ -25,9 +25,9 @@ namespace FileManager
 
         #region Delegates
 
-        private delegate void set_Text(string txt);
+        private delegate void set_Text(string txt, Object o);
 
-        private delegate string get_Text(object o);
+        private delegate string get_Text(Object o);
 
         #endregion
 
@@ -76,12 +76,12 @@ namespace FileManager
                 try
                 {
                     if (x.GetType() == typeof(File))
-                    { Invoke(new set_Text(Append_Text), "File: " + ((File)x).FilePath); }
+                    { Invoke(new set_Text(Append_Text), "File: " + ((File)x).FilePath, textBox1); }
                     else if (x.GetType() == typeof(Folder))
-                    { Invoke(new set_Text(Append_Text), "Folder: " + ((Folder)x).FolderPath); }
+                    { Invoke(new set_Text(Append_Text), "Folder: " + ((Folder)x).FolderPath, textBox1); }
                 }
                 catch (Exception ex)
-                { Invoke(new set_Text(Append_Text), ex.Message); }
+                { Invoke(new set_Text(Append_Text), ex.Message, textBox1); }
             }
         }
 
@@ -97,13 +97,27 @@ namespace FileManager
                 {
                     DirSearch(Invoke(new get_Text(Get_Text), textBox2).ToString(), null);
 
-                    ComputeFolderLength(FoldersList);
+                    //ComputeFolderLength(FoldersList);
                 }
-                catch (Exception ex) { Invoke(new set_Text(Append_Text), ex.Message); }
+                catch (Exception ex) { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
             }
         }
 
         #endregion
+
+        #region Utils
+
+        private string ArrayToString(string[] array)
+        {
+            string ConcatString = String.Empty;
+
+            try
+            { ConcatString = array.Aggregate(new StringBuilder("\a"), (current, next) => current.Append(", ").Append(next)).ToString().Replace("\a, ", string.Empty); }
+            catch (Exception ex)
+            { Append_Text(ex.StackTrace, textBox1); }
+
+            return ConcatString;
+        }
 
         private void DirSearch(string Dir, Folder Fold)
         {
@@ -124,7 +138,7 @@ namespace FileManager
                 }
             }
             catch (Exception ex)
-            { Invoke(new set_Text(Append_Text), ex.Message); }
+            { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
         }
 
         private void ComputeFolderLength(ObservableCollection<Folder> FoldersList)
@@ -135,13 +149,11 @@ namespace FileManager
             }
         }
 
-        #region Utils
-
-        private void Append_Text(string msg)
+        private void Append_Text(string msg, Object o)
         {
             if (msg != String.Empty && msg != null)
             {
-                textBox1.Text = textBox1.Text + Environment.NewLine + msg;
+                Utils.CheckSetMethodValue(o, "Text", Utils.CheckGetMethodValue(o, "Text") + Environment.NewLine + msg);
             }
         }
 
@@ -151,31 +163,29 @@ namespace FileManager
 
             try
             {
-                RtrnString = ((TextBox)o).Text;
+                RtrnString = Utils.CheckGetMethodValue(o, "Text");
             }
             catch (Exception ex)
-            { Append_Text(ex.Message); }
+            { Append_Text(ex.StackTrace, o); }
 
             return RtrnString;
         }
 
-        private string ArrayToString(string[] array)
-        {
-            string ConcatString = String.Empty;
+        private File ProcessFileInformations(FileInfo fio, Folder fo)
+        {//replace tag informations if exception
+            //if (AudioExtensions.Any(fio.Extension))
 
             try
-            { ConcatString = array.Aggregate(new StringBuilder("\a"), (current, next) => current.Append(", ").Append(next)).ToString().Replace("\a, ", string.Empty); }
+            {
+                TagLib.File f = TagLib.File.Create(fio.FullName);
+
+                return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, fo, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
+            }
             catch (Exception ex)
-            { Append_Text(ex.Message); }
-
-            return ConcatString;
-        }
-
-        private File ProcessFileInformations(FileInfo fio, Folder Fold)
-        {
-            TagLib.File f = TagLib.File.Create(fio.FullName);
-
-            return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, Fold, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
+            {
+                Invoke(new set_Text(Append_Text), "Error while getting file: " + ex.StackTrace, textBox1);
+                return new File();
+            }
         }
 
         #endregion

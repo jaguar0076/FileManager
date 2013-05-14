@@ -109,16 +109,22 @@ namespace FileManager
 
         private void DirSearch(string Dir, Folder Fold)
         {
+            long FileSize = 0;
+
             try
             {
                 DirectoryInfo ParentDir = new DirectoryInfo(Dir);
 
-                FoldersList.Add(new Folder(ParentDir.Name, ParentDir.FullName, 1, ParentDir.CreationTime, ParentDir.LastWriteTime, Fold));
+                FoldersList.Add(new Folder(ParentDir.Name, ParentDir.FullName, -1, ParentDir.CreationTime, ParentDir.LastWriteTime, Fold));
 
                 foreach (FileInfo fi in ParentDir.GetFiles().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
                     FilesList.Add(ProcessFileInformations(fi, FoldersList[FoldersList.Count - 1]));
+
+                    FileSize += fi.Length;
                 }
+
+                FoldersList[FoldersList.Count - 1].FolderLength += FileSize;
 
                 foreach (DirectoryInfo di in ParentDir.GetDirectories().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
@@ -131,9 +137,26 @@ namespace FileManager
 
         private void ComputeFolderLength(ObservableCollection<Folder> FoldersList)
         {
-            foreach (Folder f in FoldersList)
+            foreach(Folder f in FoldersList.Where(x => x.FolderLength == -1))
             {
                 f.FolderLength = FoldersList.Where(o => o.FolderParent == f).Sum(o => o.FolderLength) + FilesList.Where(o => o.FileParentFolder == f).Sum(o => o.FileLength);
+
+                ComputeFolderLength(FoldersList);
+            }
+
+        }
+
+        private void Recurse(string folder)
+        {
+            foreach (string f in Directory.GetFiles(folder))
+            {
+                string filename = Path.Combine(folder, f);
+            }
+
+            foreach (string d in Directory.GetDirectories(folder))
+            {
+                string path = Path.Combine(folder, d);
+                Recurse(path);
             }
         }
 

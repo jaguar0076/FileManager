@@ -165,7 +165,7 @@ namespace FileManager
 
         #endregion
 
-        #region String Functions
+        #region Text Functions
 
         private void Append_Text(string msg, Object o)
         {

@@ -154,18 +154,6 @@ namespace FileManager
             return totalSize;
         }
 
-        private string ArrayToString(string[] array)
-        {
-            string ConcatString = String.Empty;
-
-            try
-            { ConcatString = array.Aggregate(new StringBuilder("\a"), (current, next) => current.Append(", ").Append(next)).ToString().Replace("\a, ", string.Empty); }
-            catch (Exception ex)
-            { Append_Text(ex.StackTrace, textBox1); }
-
-            return ConcatString;
-        }
-
         private File ProcessFileInformations(FileInfo fio, Folder fo)
         {
             try

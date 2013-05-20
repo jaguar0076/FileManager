@@ -76,9 +76,9 @@ namespace FileManager
                 try
                 {
                     if (x.GetType() == typeof(File))
-                    { Invoke(new set_Text(Append_Text), "File: " + ((File)x).FilePath, textBox1); }
+                    { /*Invoke(new set_Text(Append_Text), "File: " + ((File)x).FilePath, textBox1);*/ }
                     else if (x.GetType() == typeof(Folder))
-                    { Invoke(new set_Text(Append_Text), "Folder: " + ((Folder)x).FolderPath, textBox1); }
+                    { /*Invoke(new set_Text(Append_Text), "Folder: " + ((Folder)x).FolderPath, textBox1);*/ }
                 }
                 catch (Exception ex)
                 { Invoke(new set_Text(Append_Text), ex.Message, textBox1); }
@@ -97,7 +97,7 @@ namespace FileManager
                 {
                     DirSearch(Invoke(new get_Text(Get_Text), textBox2).ToString(), null);
 
-                    //ComputeFolderLength(FoldersList);
+                    ComputeFolderLength(FoldersList);
                 }
                 catch (Exception ex) { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
             }
@@ -128,35 +128,25 @@ namespace FileManager
 
                 foreach (DirectoryInfo di in ParentDir.GetDirectories().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
-                    DirSearch(di.FullName, FoldersList[FoldersList.Count - 1]);
+                    DirSearch(di.FullName, FoldersList[FoldersList.IndexOf(FoldersList.Single(o => o.FolderPath == di.Parent.FullName))]);
                 }
             }
             catch (Exception ex)
             { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
         }
 
-        private void ComputeFolderLength(ObservableCollection<Folder> FoldersList)
+        private void ComputeFolderLength(ObservableCollection<Folder> Flist)
         {
-            foreach(Folder f in FoldersList.Where(x => x.FolderLength == -1))
+            foreach (Folder f in Flist.Where(o => o.FolderParent != null))
             {
-                f.FolderLength = FoldersList.Where(o => o.FolderParent == f).Sum(o => o.FolderLength) + FilesList.Where(o => o.FileParentFolder == f).Sum(o => o.FileLength);
+                Invoke(new set_Text(Append_Text), "Folder: " + f.FolderName + " + parent: " + f.FolderParent.FolderName, textBox1);
 
-                ComputeFolderLength(FoldersList);
-            }
+                Invoke(new set_Text(Append_Text), "Level 1: " + f.FolderName, textBox1);
 
-        }
-
-        private void Recurse(string folder)
-        {
-            foreach (string f in Directory.GetFiles(folder))
-            {
-                string filename = Path.Combine(folder, f);
-            }
-
-            foreach (string d in Directory.GetDirectories(folder))
-            {
-                string path = Path.Combine(folder, d);
-                Recurse(path);
+                foreach (Folder f2 in Flist.Where(o => o.FolderParent == f))
+                {
+                    Invoke(new set_Text(Append_Text), "Level 2: " + f2.FolderName, textBox1);
+                }
             }
         }
 
@@ -173,7 +163,7 @@ namespace FileManager
         }
 
         private File ProcessFileInformations(FileInfo fio, Folder fo)
-        {//replace tag informations if exception
+        {
             try
             {
                 TagLib.File f = TagLib.File.Create(fio.FullName);
@@ -181,7 +171,7 @@ namespace FileManager
             }
             catch (Exception ex)
             {
-                Invoke(new set_Text(Append_Text), "Error while getting file: " + ex.StackTrace, textBox1);
+                Append_Text("Error while getting file: " + ex.StackTrace, textBox1);
                 return new File();
             }
         }

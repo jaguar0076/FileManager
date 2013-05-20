@@ -21,6 +21,8 @@ namespace FileManager
 
         private string[] AudioExtensions = { ".mp3", ".wma", ".m4a", ".flac" };
 
+        private const int DefaultFolderSize = 0;
+
         #endregion
 
         #region Delegates
@@ -76,9 +78,9 @@ namespace FileManager
                 try
                 {
                     if (x.GetType() == typeof(File))
-                    { /*Invoke(new set_Text(Append_Text), "File: " + ((File)x).FilePath, textBox1);*/ }
+                    { Invoke(new set_Text(Append_Text), "File: " + ((File)x).FilePath, textBox1); }
                     else if (x.GetType() == typeof(Folder))
-                    { /*Invoke(new set_Text(Append_Text), "Folder: " + ((Folder)x).FolderPath, textBox1);*/ }
+                    { Invoke(new set_Text(Append_Text), "Folder: " + ((Folder)x).FolderPath, textBox1); }
                 }
                 catch (Exception ex)
                 { Invoke(new set_Text(Append_Text), ex.Message, textBox1); }
@@ -115,7 +117,7 @@ namespace FileManager
             {
                 DirectoryInfo ParentDir = new DirectoryInfo(Dir);
 
-                FoldersList.Add(new Folder(ParentDir.Name, ParentDir.FullName, -1, ParentDir.CreationTime, ParentDir.LastWriteTime, Fold));
+                FoldersList.Add(new Folder(ParentDir.Name, ParentDir.FullName, DefaultFolderSize, ParentDir.CreationTime, ParentDir.LastWriteTime, Fold));
 
                 foreach (FileInfo fi in ParentDir.GetFiles().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
@@ -137,17 +139,19 @@ namespace FileManager
 
         private void ComputeFolderLength(ObservableCollection<Folder> Flist)
         {
-            foreach (Folder f in Flist.Where(o => o.FolderParent != null))
+            foreach (Folder f in Flist.Where(o => o.FolderLength == DefaultFolderSize))
             {
-                Invoke(new set_Text(Append_Text), "Folder: " + f.FolderName + " + parent: " + f.FolderParent.FolderName, textBox1);
-
-                Invoke(new set_Text(Append_Text), "Level 1: " + f.FolderName, textBox1);
-
-                foreach (Folder f2 in Flist.Where(o => o.FolderParent == f))
-                {
-                    Invoke(new set_Text(Append_Text), "Level 2: " + f2.FolderName, textBox1);
-                }
+                f.FolderLength = DirectorySize(f);
             }
+        }
+
+        private long DirectorySize(Folder f)
+        {
+            long totalSize = FoldersList.Where(o => o.FolderParent == f).Sum(o => o.FolderLength);
+
+            totalSize += FoldersList.Where(o => o.FolderParent == f).Sum(o => DirectorySize(o));
+
+            return totalSize;
         }
 
         private string ArrayToString(string[] array)

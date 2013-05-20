@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -141,15 +140,15 @@ namespace FileManager
         {
             foreach (Folder f in Flist.Where(o => o.FolderLength == DefaultFolderSize))
             {
-                f.FolderLength = DirectorySize(f);
+                f.FolderLength = DirectorySize(f, Flist);
             }
         }
 
-        private long DirectorySize(Folder f)
+        static long DirectorySize(Folder f, ObservableCollection<Folder> Flist)
         {
-            long totalSize = FoldersList.Where(o => o.FolderParent == f).Sum(o => o.FolderLength);
+            long totalSize = Flist.Where(o => o.FolderParent == f).Sum(o => o.FolderLength);
 
-            totalSize += FoldersList.Where(o => o.FolderParent == f).Sum(o => DirectorySize(o));
+            totalSize += Flist.Where(o => o.FolderParent == f).Sum(o => DirectorySize(o, Flist));
 
             return totalSize;
         }
@@ -172,7 +171,7 @@ namespace FileManager
 
         #region Text Functions
 
-        private void Append_Text(string msg, Object o)
+        static void Append_Text(string msg, Object o)
         {
             if (msg != String.Empty && msg != null)
             {
@@ -180,7 +179,7 @@ namespace FileManager
             }
         }
 
-        private string Get_Text(Object o)
+        static string Get_Text(Object o)
         {
             string RtrnString = String.Empty;
 
@@ -194,6 +193,9 @@ namespace FileManager
             return RtrnString;
         }
 
+        #endregion
+
+        #region Object Functions
         #endregion
     }
 }

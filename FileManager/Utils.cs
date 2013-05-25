@@ -16,7 +16,7 @@ namespace FileManager
                 o.GetType().GetProperty(methodName).SetValue(o, val, null);
             }
             catch (Exception ex)
-            { }
+            { /*throw exception here*/ }
         }
 
         public static string GetMethodValue(this object o, string methodName)
@@ -28,7 +28,7 @@ namespace FileManager
                 val = (string)o.GetType().GetProperty(methodName).GetValue(o, null);
             }
             catch (Exception ex)
-            { }
+            { /*throw exception here*/ }
 
             return val;
         }
@@ -40,7 +40,7 @@ namespace FileManager
                 SetMethodValue(o, methodName, val);
             }
             else
-            { /*throw exception here*/}
+            { /*throw exception here*/ }
         }
 
         public static string CheckGetMethodValue(this object o, string methodName)

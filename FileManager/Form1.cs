@@ -47,7 +47,7 @@ namespace FileManager
         {
             PowerState state = PowerState.GetPowerState();
 
-            if (state.ACLineStatus == ACLineStatus.Online || ((int)state.BatteryLifePercent) > 20)
+            if (state.ACLineStatus == ACLineStatus.Online || ((int)state.BatteryLifePercent) > 15)
             {
                 MyThread = new Thread(new ThreadStart(Thread_Construct_Tree));
                 MyThread.Start();
@@ -162,7 +162,7 @@ namespace FileManager
             }
             catch (Exception ex)
             {
-                Append_Text("Error while getting file: " + ex.StackTrace, textBox1);
+                Invoke(new set_Text(Append_Text), "Error while getting file tags", textBox1);
                 return new File();
             }
         }
@@ -181,21 +181,9 @@ namespace FileManager
 
         static string Get_Text(Object o)
         {
-            string RtrnString = String.Empty;
-
-            try
-            {
-                RtrnString = Utils.CheckGetMethodValue(o, "Text");
-            }
-            catch (Exception ex)
-            { Append_Text(ex.StackTrace, o); }
-
-            return RtrnString;
+            return Utils.CheckGetMethodValue(o, "Text");
         }
 
-        #endregion
-
-        #region Object Functions
         #endregion
     }
 }

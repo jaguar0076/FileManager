@@ -18,7 +18,7 @@ namespace FileManager
 
         private Thread MyThread;
 
-        private string[] AudioExtensions = { ".mp3", ".wma", ".m4a", ".flac" };
+        private string[] FileExtensions = { ".mp3", ".wma", ".m4a", ".flac" };
 
         private const int DefaultFolderSize = 0;
 
@@ -77,12 +77,16 @@ namespace FileManager
                 try
                 {
                     if (x.GetType() == typeof(File))
-                    { Invoke(new set_Text(Append_Text), "File: " + ((File)x).FilePath, textBox1); }
+                    {
+                        Invoke(new set_Text(Append_Text), "File: " + ((File)x).FilePath, textBox1);
+                    }
                     else if (x.GetType() == typeof(Folder))
-                    { Invoke(new set_Text(Append_Text), "Folder: " + ((Folder)x).FolderPath, textBox1); }
+                    {
+                        Invoke(new set_Text(Append_Text), "Folder: " + ((Folder)x).FolderPath, textBox1);
+                    }
                 }
                 catch (Exception ex)
-                { Invoke(new set_Text(Append_Text), ex.Message, textBox1); }
+                { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
             }
         }
 
@@ -118,16 +122,19 @@ namespace FileManager
 
                 FoldersList.Add(new Folder(ParentDir.Name, ParentDir.FullName, DefaultFolderSize, ParentDir.CreationTime, ParentDir.LastWriteTime, Fold));
 
-                foreach (FileInfo fi in ParentDir.GetFiles().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
+                foreach (FileInfo fi in ParentDir.GetFiles())//.Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
-                    FilesList.Add(ProcessFileInformations(fi, FoldersList[FoldersList.Count - 1]));
+                    if (FileExtensions.Any(str => str == fi.Extension))
+                    {
+                        FilesList.Add(ProcessFileInformations(fi, FoldersList[FoldersList.Count - 1]));
 
-                    FileSize += fi.Length;
+                        FileSize += fi.Length;
+                    }
                 }
 
                 FoldersList[FoldersList.Count - 1].FolderLength += FileSize;
 
-                foreach (DirectoryInfo di in ParentDir.GetDirectories().Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
+                foreach (DirectoryInfo di in ParentDir.GetDirectories())//.Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
                 {
                     DirSearch(di.FullName, FoldersList[FoldersList.IndexOf(FoldersList.Single(o => o.FolderPath == di.Parent.FullName))]);
                 }
@@ -136,7 +143,7 @@ namespace FileManager
             { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
         }
 
-        static void ComputeFolderLength(ObservableCollection<Folder> Flist)
+        private static void ComputeFolderLength(ObservableCollection<Folder> Flist)
         {
             foreach (Folder f in Flist.Where(o => o.FolderLength == DefaultFolderSize))
             {
@@ -144,7 +151,7 @@ namespace FileManager
             }
         }
 
-        static long DirectorySize(Folder f, ObservableCollection<Folder> Flist)
+        private static long DirectorySize(Folder f, ObservableCollection<Folder> Flist)
         {
             long totalSize = Flist.Where(o => o.FolderParent == f).Sum(o => o.FolderLength);
 
@@ -162,7 +169,7 @@ namespace FileManager
             }
             catch (Exception ex)
             {
-                Invoke(new set_Text(Append_Text), "Error while getting file tags", textBox1);
+                Invoke(new set_Text(Append_Text), "Error while getting file tags: " + ex.StackTrace, textBox1);
                 return new File();
             }
         }
@@ -176,6 +183,14 @@ namespace FileManager
             if (msg != String.Empty && msg != null)
             {
                 Utils.CheckSetMethodValue(o, "Text", Utils.CheckGetMethodValue(o, "Text") + Environment.NewLine + msg);
+            }
+        }
+
+        static void Set_Text(string msg, Object o)
+        {
+            if (msg != String.Empty && msg != null)
+            {
+                Utils.CheckSetMethodValue(o, "Text", msg);
             }
         }
 

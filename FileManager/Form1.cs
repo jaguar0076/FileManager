@@ -90,7 +90,7 @@ namespace FileManager
 
         #region Thread
 
-        public void Thread_Construct_Tree()
+        private void Thread_Construct_Tree()
         {
             if (Thread.CurrentThread.IsAlive)
             {
@@ -136,7 +136,7 @@ namespace FileManager
             { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
         }
 
-        private void ComputeFolderLength(ObservableCollection<Folder> Flist)
+        static void ComputeFolderLength(ObservableCollection<Folder> Flist)
         {
             foreach (Folder f in Flist.Where(o => o.FolderLength == DefaultFolderSize))
             {

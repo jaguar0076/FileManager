@@ -122,7 +122,7 @@ namespace FileManager
 
                 FoldersList.Add(new Folder(ParentDir.Name, ParentDir.FullName, DefaultFolderSize, ParentDir.CreationTime, ParentDir.LastWriteTime, Fold));
 
-                foreach (FileInfo fi in ParentDir.GetFiles())//.Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
+                foreach (FileInfo fi in ParentDir.GetFiles())
                 {
                     if (FileExtensions.Any(str => str == fi.Extension))
                     {
@@ -134,7 +134,7 @@ namespace FileManager
 
                 FoldersList[FoldersList.Count - 1].FolderLength += FileSize;
 
-                foreach (DirectoryInfo di in ParentDir.GetDirectories())//.Where(x => (x.Attributes & FileAttributes.Hidden) == 0 && (x.Attributes & FileAttributes.System) == 0))
+                foreach (DirectoryInfo di in ParentDir.GetDirectories())
                 {
                     DirSearch(di.FullName, FoldersList[FoldersList.IndexOf(FoldersList.Single(o => o.FolderPath == di.Parent.FullName))]);
                 }
@@ -162,16 +162,9 @@ namespace FileManager
 
         private File ProcessFileInformations(FileInfo fio, Folder fo)
         {
-            //not needed anymore, because the file extensions are filtered
-            //{
             TagLib.File f = TagLib.File.Create(fio.FullName);
+
             return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, fo, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
-            /*}
-            catch (Exception ex)
-            {
-                Invoke(new set_Text(Append_Text), "Error while getting file tags: " + ex.StackTrace, textBox1);
-                return new File();
-            }*/
         }
 
         #endregion

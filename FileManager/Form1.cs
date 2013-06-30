@@ -18,7 +18,7 @@ namespace FileManager
 
         private Thread MyThread;
 
-        private string[] FileExtensions = { ".mp3", ".wma", ".m4a", ".flac" };
+        private string[] FileExtensions = { ".mp3", ".wma", ".m4a", ".flac", ".ogg", ".alac", ".aiff" };
 
         private const int DefaultFolderSize = 0;
 

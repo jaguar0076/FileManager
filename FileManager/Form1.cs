@@ -162,16 +162,16 @@ namespace FileManager
 
         private File ProcessFileInformations(FileInfo fio, Folder fo)
         {
-            try
-            {
-                TagLib.File f = TagLib.File.Create(fio.FullName);
-                return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, fo, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
-            }
+            //not needed anymore, because the file extensions are filtered
+            //{
+            TagLib.File f = TagLib.File.Create(fio.FullName);
+            return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, fo, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
+            /*}
             catch (Exception ex)
             {
                 Invoke(new set_Text(Append_Text), "Error while getting file tags: " + ex.StackTrace, textBox1);
                 return new File();
-            }
+            }*/
         }
 
         #endregion

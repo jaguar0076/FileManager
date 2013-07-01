@@ -160,7 +160,7 @@ namespace FileManager
             return totalSize;
         }
 
-        private File ProcessFileInformations(FileInfo fio, Folder fo)
+        private static File ProcessFileInformations(FileInfo fio, Folder fo)
         {
             TagLib.File f = TagLib.File.Create(fio.FullName);
 
@@ -171,7 +171,7 @@ namespace FileManager
 
         #region Text Functions
 
-        static void Append_Text(string msg, Object o)
+        private static void Append_Text(string msg, Object o)
         {
             if (msg != String.Empty && msg != null)
             {
@@ -179,7 +179,7 @@ namespace FileManager
             }
         }
 
-        static void Set_Text(string msg, Object o)
+        private static void Set_Text(string msg, Object o)
         {
             if (msg != String.Empty && msg != null)
             {
@@ -187,7 +187,7 @@ namespace FileManager
             }
         }
 
-        static string Get_Text(Object o)
+        private static string Get_Text(Object o)
         {
             return Utils.CheckGetMethodValue(o, "Text");
         }

@@ -6,6 +6,17 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
+/*
+ * prochaines étape:
+ * 
+ * - implémentation de l'arborescence récupérée en XML
+ * - ajouter un watcher sur les folder pour monitorer les changements, vérifier les changements détecté par le Watcher et 
+ *   comparer le XML stocké et les folder ayant changés, ceci sera plus facile de stocker les modifications dans les folders
+ *   en utilisant le XML et les nodes pour gérer les modifications dans l'arborescence. Toutes les informations devront être
+ *   sérialisées facilement.
+ * 
+ */
+
 namespace FileManager
 {
     public partial class Form1 : Form

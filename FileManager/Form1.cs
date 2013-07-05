@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using System.Xml.Linq;
+using System.Xml.Serialization;
 
 /*
  * prochaines étape:
@@ -111,9 +113,11 @@ namespace FileManager
             {
                 try
                 {
-                    DirSearch(Invoke(new get_Text(Get_Text), textBox2).ToString(), null);
+                    //DirSearch(Invoke(new get_Text(Get_Text), textBox2).ToString(), null);
 
-                    ComputeFolderLength(FoldersList);
+                    Invoke(new set_Text(Append_Text), GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString()).ToString(), textBox1);
+
+                    //ComputeFolderLength(FoldersList);
                 }
                 catch (Exception ex) { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
             }
@@ -154,19 +158,28 @@ namespace FileManager
             { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
         }
 
-        private static void ComputeFolderLength(ObservableCollection<Folder> Flist)
-        {
-            foreach (Folder f in Flist.Where(o => o.FolderLength == DefaultFolderSize))
-            {
-                f.FolderLength = DirectorySize(f, Flist);
-            }
-        }
+        //private static void ComputeFolderLength(ObservableCollection<Folder> Flist)
+        //{
+        //    foreach (Folder f in Flist.Where(o => o.FolderLength == DefaultFolderSize))
+        //    {
+        //        f.FolderLength = DirectorySize(f, Flist);
+        //    }
+        //}
 
-        private static long DirectorySize(Folder f, ObservableCollection<Folder> Flist)
-        {
-            long totalSize = Flist.Where(o => o.FolderParent == f).Sum(o => o.FolderLength);
+        //private static long DirectorySize(Folder f, ObservableCollection<Folder> Flist)
+        //{
+        //    long totalSize = Flist.Where(o => o.FolderParent == f).Sum(o => o.FolderLength);
 
-            totalSize += Flist.Where(o => o.FolderParent == f).Sum(o => DirectorySize(o, Flist));
+        //    totalSize += Flist.Where(o => o.FolderParent == f).Sum(o => DirectorySize(o, Flist));
+
+        //    return totalSize;
+        //}
+
+        private static long DirectorySize(DirectoryInfo Dir, FileInfo[] FileList)
+        {
+            long totalSize = FileList.Where(o => o.Directory == Dir).Sum(o => o.Length);
+
+            totalSize += FileList.Where(o => o.Directory == Dir).Sum(o => DirectorySize(o.Directory, FileList));
 
             return totalSize;
         }
@@ -176,6 +189,21 @@ namespace FileManager
             TagLib.File f = TagLib.File.Create(fio.FullName);
 
             return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, fo, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
+        }
+
+        private static XElement GetDirectoryXml(String dir)
+        {
+            DirectoryInfo Dir = new DirectoryInfo(dir);
+
+            var info = new XElement("dir", new XAttribute("Name", Dir.Name), new XAttribute("DirectorySize", DirectorySize(Dir, Dir.GetFiles())));
+
+            foreach (var file in Dir.GetFiles())
+                info.Add(new XElement("file", new XAttribute("Name", file.Name), new XAttribute("Extension", file.Extension)));
+
+            foreach (var subDir in Dir.GetDirectories())
+                info.Add(GetDirectoryXml(subDir.FullName));
+
+            return info;
         }
 
         #endregion

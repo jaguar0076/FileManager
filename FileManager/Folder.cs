@@ -3,7 +3,7 @@ using System.Xml.Serialization;
 
 namespace FileManager
 {
-    class Folder
+    public class Folder
     {
         #region Variables
 

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -25,13 +23,9 @@ namespace FileManager
     {
         #region Variables
 
-        private ObservableCollection<File> FilesList = new ObservableCollection<File>();
-
-        private ObservableCollection<Folder> FoldersList = new ObservableCollection<Folder>();
-
         private Thread MyThread;
 
-        private string[] FileExtensions = { ".mp3", ".wma", ".m4a", ".flac", ".ogg", ".alac", ".aiff" };
+        private static string[] FileExtensions = { ".mp3", ".wma", ".m4a", ".flac", ".ogg", ".alac", ".aiff" };
 
         private const int DefaultFolderSize = 0;
 
@@ -50,10 +44,6 @@ namespace FileManager
         public Form1()
         {
             InitializeComponent();
-
-            FilesList.CollectionChanged += HandleChange;
-
-            FoldersList.CollectionChanged += HandleChange;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -81,30 +71,6 @@ namespace FileManager
 
         #endregion
 
-        #region Events
-
-        private void HandleChange(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            foreach (var x in e.NewItems)
-            {
-                try
-                {
-                    if (x.GetType() == typeof(File))
-                    {
-                        Invoke(new set_Text(Append_Text), "File: " + ((File)x).FilePath, textBox1);
-                    }
-                    else if (x.GetType() == typeof(Folder))
-                    {
-                        Invoke(new set_Text(Append_Text), "Folder: " + ((Folder)x).FolderPath, textBox1);
-                    }
-                }
-                catch (Exception ex)
-                { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
-            }
-        }
-
-        #endregion
-
         #region Thread
 
         private void Thread_Construct_Tree()
@@ -113,11 +79,7 @@ namespace FileManager
             {
                 try
                 {
-                    //DirSearch(Invoke(new get_Text(Get_Text), textBox2).ToString(), null);
-
                     Invoke(new set_Text(Append_Text), GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString()).ToString(), textBox1);
-
-                    //ComputeFolderLength(FoldersList);
                 }
                 catch (Exception ex) { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
             }
@@ -127,79 +89,12 @@ namespace FileManager
 
         #region Utils
 
-        /*private void DirSearch(string Dir, Folder Fold)
+        static long DirectorySize(DirectoryInfo dInfo)
         {
-            long FileSize = 0;
+            long totalSize = dInfo.EnumerateFiles().Sum(file => file.Length);
 
-            try
-            {
-                DirectoryInfo ParentDir = new DirectoryInfo(Dir);
+            totalSize += dInfo.EnumerateDirectories().Sum(dir => DirectorySize(dir));
 
-                FoldersList.Add(new Folder(ParentDir.Name, ParentDir.FullName, DefaultFolderSize, ParentDir.CreationTime, ParentDir.LastWriteTime, Fold));
-
-                foreach (FileInfo fi in ParentDir.GetFiles())
-                {
-                    if (FileExtensions.Any(str => str == fi.Extension))
-                    {
-                        FilesList.Add(ProcessFileInformations(fi, FoldersList[FoldersList.Count - 1]));
-
-                        FileSize += fi.Length;
-                    }
-                }
-
-                FoldersList[FoldersList.Count - 1].FolderLength += FileSize;
-
-                foreach (DirectoryInfo di in ParentDir.GetDirectories())
-                {
-                    DirSearch(di.FullName, FoldersList[FoldersList.IndexOf(FoldersList.Single(o => o.FolderPath == di.Parent.FullName))]);
-                }
-            }
-            catch (Exception ex)
-            { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
-        }
-
-        private static void ComputeFolderLength(ObservableCollection<Folder> Flist)
-        {
-            foreach (Folder f in Flist.Where(o => o.FolderLength == DefaultFolderSize))
-            {
-                f.FolderLength = DirectorySize(f, Flist);
-            }
-        }
-
-        private static long DirectorySize(Folder f, ObservableCollection<Folder> Flist)
-        {
-            long totalSize = Flist.Where(o => o.FolderParent == f).Sum(o => o.FolderLength);
-
-            totalSize += Flist.Where(o => o.FolderParent == f).Sum(o => DirectorySize(o, Flist));
-
-            return totalSize;
-        }*/
-
-        private static long DirectorySize(DirectoryInfo Dir, FileInfo[] FileList)
-        {
-            long totalSize = FileList.Where(o => o.Directory == Dir).Sum(o => o.Length);
-
-            totalSize += FileList.Where(o => o.Directory == Dir).Sum(o => DirectorySize(o.Directory, FileList));
-
-            return totalSize;
-        }
-
-        static long CalculateDirectorySize(DirectoryInfo directory, bool includeSubdirectories)
-        {
-            long totalSize = 0;
-            // Examine all contained files.
-            foreach (FileInfo file in directory.EnumerateFiles())
-            {
-                totalSize += file.Length;
-            }
-            // Examine all contained directories.
-            if (includeSubdirectories)
-            {
-                foreach (DirectoryInfo dir in directory.EnumerateDirectories())
-                {
-                    totalSize += CalculateDirectorySize(dir, true);
-                }
-            }
             return totalSize;
         }
 
@@ -216,22 +111,25 @@ namespace FileManager
 
             var info = new XElement("Directory",
                        new XAttribute("Name", Dir.Name),
-                       new XAttribute("DirectorySize", CalculateDirectorySize(Dir, true)),
+                       new XAttribute("DirectorySize", DirectorySize(Dir)),
                        new XAttribute("DirectoryPath", Dir.FullName),
                        new XAttribute("CreationTime", Dir.CreationTime),
                        new XAttribute("LastWriteTime", Dir.LastWriteTime),
                        new XAttribute("ParentFolder", Dir.Parent.FullName));
 
             foreach (var file in Dir.GetFiles())
-                info.Add(new XElement("File",
-                         new XAttribute("Name", file.Name),
-                         new XAttribute("Extension", file.Extension),
-                         new XAttribute("Length", file.Length),
-                         new XAttribute("CreationTime", file.CreationTime),
-                         new XAttribute("LastWriteTime", file.LastWriteTime),
-                         new XAttribute("FilePath", file.FullName),
-                         new XAttribute("FolderParent", file.Directory.FullName)));
 
+                if (FileExtensions.Any(str => str == file.Extension))
+                {
+                    info.Add(new XElement("File",
+                             new XAttribute("Name", file.Name),
+                             new XAttribute("Extension", file.Extension),
+                             new XAttribute("Length", file.Length),
+                             new XAttribute("CreationTime", file.CreationTime),
+                             new XAttribute("LastWriteTime", file.LastWriteTime),
+                             new XAttribute("FilePath", file.FullName),
+                             new XAttribute("FolderParent", file.Directory.FullName)));
+                }
             foreach (var subDir in Dir.GetDirectories())
                 info.Add(GetDirectoryXml(subDir.FullName));
 

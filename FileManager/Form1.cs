@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using System.Xml.XPath;
 
 /*
  * prochaines étape:
@@ -35,6 +36,8 @@ namespace FileManager
         private delegate void set_Text(string txt, Object o);
 
         private delegate string get_Text(Object o);
+
+        private delegate void set_ButtonState(bool val, Object o);
 
         #endregion
 
@@ -76,11 +79,15 @@ namespace FileManager
         {
             if (Thread.CurrentThread.IsAlive)
             {
+                Invoke(new set_ButtonState(Set_ButtonState), false, button1);
+
                 try
                 {
-                    Invoke(new set_Text(Append_Text), GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString()).ToString(), textBox1);
+                    Invoke(new set_Text(Append_Text), GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).ToString(), textBox1);
                 }
                 catch (Exception ex) { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
+
+                Invoke(new set_ButtonState(Set_ButtonState), true, button1);
             }
         }
 
@@ -88,7 +95,7 @@ namespace FileManager
 
         #region Utils
 
-        static long DirectorySize(DirectoryInfo dInfo)
+        private static long DirectorySize(DirectoryInfo dInfo)
         {
             long totalSize = dInfo.EnumerateFiles().Sum(file => file.Length);
 
@@ -104,7 +111,7 @@ namespace FileManager
             return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, fo, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
         }*/
 
-        private static XElement GetDirectoryXml(String dir)
+        private static XElement GetDirectoryXml(String dir, string[] FileExtensions)
         {
             DirectoryInfo Dir = new DirectoryInfo(dir);
 
@@ -130,7 +137,7 @@ namespace FileManager
                              new XAttribute("FolderParent", file.Directory.FullName)));
                 }
             foreach (var subDir in Dir.GetDirectories())
-                info.Add(GetDirectoryXml(subDir.FullName));
+                info.Add(GetDirectoryXml(subDir.FullName, FileExtensions));
 
             return info;
         }
@@ -158,6 +165,11 @@ namespace FileManager
         private static string Get_Text(Object o)
         {
             return Utils.CheckGetMethodValue(o, "Text");
+        }
+
+        private static void Set_ButtonState(bool state, Object o)
+        {
+            Utils.CheckSetMethodValue(o, "Enabled", state);
         }
 
         #endregion

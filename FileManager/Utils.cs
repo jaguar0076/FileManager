@@ -19,6 +19,16 @@ namespace FileManager
             { /*throw exception here*/ }
         }
 
+        public static void SetMethodValue(this object o, string methodName, bool val)
+        {
+            try
+            {
+                o.GetType().GetProperty(methodName).SetValue(o, val, null);
+            }
+            catch (Exception ex)
+            { /*throw exception here*/ }
+        }
+
         public static string GetMethodValue(this object o, string methodName)
         {
             string val = "";
@@ -34,6 +44,16 @@ namespace FileManager
         }
 
         public static void CheckSetMethodValue(this object o, string methodName, string val)
+        {
+            if (HasMethod(o, methodName))
+            {
+                SetMethodValue(o, methodName, val);
+            }
+            else
+            { /*throw exception here*/ }
+        }
+
+        public static void CheckSetMethodValue(this object o, string methodName, bool val)
         {
             if (HasMethod(o, methodName))
             {

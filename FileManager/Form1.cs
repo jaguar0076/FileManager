@@ -29,8 +29,6 @@ namespace FileManager
 
         private static string debug = "";
 
-        private const int DefaultFolderSize = 0;
-
         #endregion
 
         #region Delegates
@@ -204,5 +202,10 @@ namespace FileManager
         }
 
         #endregion
+
+        private void showErrorsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(debug);
+        }
     }
 }

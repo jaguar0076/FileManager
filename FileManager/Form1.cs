@@ -1,11 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
-using TagLib;
-using System.Collections.Generic;
 
 /*
  * prochaines étape:
@@ -84,11 +83,7 @@ namespace FileManager
             {
                 Invoke(new set_ButtonState(Set_ButtonState), false, button1);
 
-                try
-                {
-                    Invoke(new set_Text(Append_Text), GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).ToString(), textBox1);
-                }
-                catch (Exception ex) { Invoke(new set_Text(Append_Text), ex.Message, textBox1); }
+                Invoke(new set_Text(Append_Text), GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).ToString(), textBox1);
 
                 Invoke(new set_ButtonState(Set_ButtonState), true, button1);
             }
@@ -107,18 +102,10 @@ namespace FileManager
             return totalSize;
         }
 
-        /*private static File ProcessFileInformations(FileInfo fio, Folder fo)
-        {
-            TagLib.File f = TagLib.File.Create(fio.FullName);
-
-            return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, fo, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
-        }*/
-
         private static XElement ProcessFileInfo(XElement Xnode, FileInfo file)
         {
             try
             {
-
                 TagLib.File filetag = TagLib.File.Create(file.FullName);
 
                 Xnode.Add(new XElement("File",
@@ -134,7 +121,7 @@ namespace FileManager
                          new XAttribute("MediaYear", filetag.Tag.Year),
                          new XAttribute("MediaArtists", string.Join(",", filetag.Tag.AlbumArtists) ?? String.Empty)));
             }
-            catch (CorruptFileException e)
+            catch (Exception e)
             { throw e; }
 
             return Xnode;
@@ -174,7 +161,7 @@ namespace FileManager
                     }
                     catch (Exception e)
                     {
-                        debug += e.Message + file.FullName;
+                        debug += e.Message + ' ' + file.FullName;
 
                         FileEx.Add(file.FullName);
 
@@ -185,9 +172,6 @@ namespace FileManager
 
             return Xnode;
         }
-
-        private static bool CanJustLog(Exception e)
-        { return true; }
 
         #endregion
 

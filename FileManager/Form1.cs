@@ -4,7 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
-using System.Xml.XPath;
+using TagLib;
+using System.Collections.Generic;
 
 /*
  * prochaines étape:
@@ -26,6 +27,8 @@ namespace FileManager
         private Thread MyThread;
 
         private static string[] FileExtensions = { ".mp3", ".wma", ".m4a", ".flac", ".ogg", ".alac", ".aiff" };
+
+        private static string debug = "";
 
         private const int DefaultFolderSize = 0;
 
@@ -85,7 +88,7 @@ namespace FileManager
                 {
                     Invoke(new set_Text(Append_Text), GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).ToString(), textBox1);
                 }
-                catch (Exception ex) { Invoke(new set_Text(Append_Text), ex.StackTrace, textBox1); }
+                catch (Exception ex) { Invoke(new set_Text(Append_Text), ex.Message, textBox1); }
 
                 Invoke(new set_ButtonState(Set_ButtonState), true, button1);
             }
@@ -111,9 +114,37 @@ namespace FileManager
             return new File(fio.Name, fio.FullName, fio.Length, fio.CreationTime, fio.LastWriteTime, fio.Extension, fo, f.Tag.Title, f.Tag.Album, f.Tag.Year, f.Tag.AlbumArtists);
         }*/
 
+        private static XElement ProcessFileInfo(XElement Xnode, FileInfo file)
+        {
+            try
+            {
+
+                TagLib.File filetag = TagLib.File.Create(file.FullName);
+
+                Xnode.Add(new XElement("File",
+                         new XAttribute("Name", file.Name),
+                         new XAttribute("Extension", file.Extension),
+                         new XAttribute("Length", file.Length),
+                         new XAttribute("CreationTime", file.CreationTime),
+                         new XAttribute("LastWriteTime", file.LastWriteTime),
+                         new XAttribute("FilePath", file.FullName),
+                         new XAttribute("FolderParent", file.Directory.FullName),
+                         new XAttribute("MediaTitle", filetag.Tag.Title ?? String.Empty),
+                         new XAttribute("MediaAlbum", filetag.Tag.Album ?? String.Empty),
+                         new XAttribute("MediaYear", filetag.Tag.Year),
+                         new XAttribute("MediaArtists", string.Join(",", filetag.Tag.AlbumArtists) ?? String.Empty)));
+            }
+            catch (CorruptFileException e)
+            { throw e; }
+
+            return Xnode;
+        }
+
         private static XElement GetDirectoryXml(String dir, string[] FileExtensions)
         {
             DirectoryInfo Dir = new DirectoryInfo(dir);
+
+            List<string> FileEx = new List<string>();
 
             var info = new XElement("Directory",
                        new XAttribute("Name", Dir.Name),
@@ -123,24 +154,40 @@ namespace FileManager
                        new XAttribute("LastWriteTime", Dir.LastWriteTime),
                        new XAttribute("ParentFolder", Dir.Parent.FullName));
 
-            foreach (var file in Dir.GetFiles())
+            info = ComputeFileInfo(Dir.GetFiles(), info, FileEx);
 
-                if (FileExtensions.Any(str => str == file.Extension))
-                {
-                    info.Add(new XElement("File",
-                             new XAttribute("Name", file.Name),
-                             new XAttribute("Extension", file.Extension),
-                             new XAttribute("Length", file.Length),
-                             new XAttribute("CreationTime", file.CreationTime),
-                             new XAttribute("LastWriteTime", file.LastWriteTime),
-                             new XAttribute("FilePath", file.FullName),
-                             new XAttribute("FolderParent", file.Directory.FullName)));
-                }
             foreach (var subDir in Dir.GetDirectories())
                 info.Add(GetDirectoryXml(subDir.FullName, FileExtensions));
 
             return info;
         }
+
+        private static XElement ComputeFileInfo(FileInfo[] Flist, XElement Xnode, List<string> FileEx)
+        {
+            foreach (FileInfo file in Flist)
+            {
+                if (FileExtensions.Any(str => str == file.Extension) && FileEx.Any(str => str != file.FullName))
+                {
+                    try
+                    {
+                        Xnode = ProcessFileInfo(Xnode, file);
+                    }
+                    catch (Exception e)
+                    {
+                        debug += e.Message + file.FullName;
+
+                        FileEx.Add(file.FullName);
+
+                        ComputeFileInfo(Flist, Xnode, FileEx);
+                    }
+                }
+            }
+
+            return Xnode;
+        }
+
+        private static bool CanJustLog(Exception e)
+        { return true; }
 
         #endregion
 

@@ -52,8 +52,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="File.cs" />
-    <Compile Include="Folder.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

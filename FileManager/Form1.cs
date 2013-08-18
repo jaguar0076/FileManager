@@ -81,7 +81,12 @@ namespace FileManager
             {
                 Invoke(new set_ButtonState(Set_ButtonState), false, button1);
 
-                Invoke(new set_Text(Append_Text), GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).ToString(), textBox1);
+                try
+                {
+                    Invoke(new set_Text(Append_Text), GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).ToString(), textBox1);
+                }
+                catch (Exception e)
+                { Invoke(new set_Text(Append_Text), e.Message, textBox1); }
 
                 Invoke(new set_ButtonState(Set_ButtonState), true, button1);
             }
@@ -129,7 +134,7 @@ namespace FileManager
         {
             DirectoryInfo Dir = new DirectoryInfo(dir);
 
-            List<string> FileEx = new List<string>();
+            List<FileInfo> FileEx = new List<FileInfo>();
 
             var info = new XElement("Directory",
                        new XAttribute("Name", Dir.Name),
@@ -147,11 +152,11 @@ namespace FileManager
             return info;
         }
 
-        private static XElement ComputeFileInfo(FileInfo[] Flist, XElement Xnode, List<string> FileEx)
+        private static XElement ComputeFileInfo(FileInfo[] Flist, XElement Xnode, List<FileInfo> FileEx)
         {
-            foreach (FileInfo file in Flist)
+            foreach (FileInfo file in Flist.Where(f => !FileEx.Contains(f)))
             {
-                if (FileExtensions.Any(str => str == file.Extension) && FileEx.Any(str => str != file.FullName))
+                if (FileExtensions.Any(str => str == file.Extension)) //&& FileEx.Any(str => str != file.FullName))
                 {
                     try
                     {
@@ -159,9 +164,9 @@ namespace FileManager
                     }
                     catch (Exception e)
                     {
-                        debug += e.Message + ' ' + file.FullName;
+                        debug += file.FullName + "\n";//" file:" + file.FullName;
 
-                        FileEx.Add(file.FullName);
+                        FileEx.Add(file);
 
                         ComputeFileInfo(Flist, Xnode, FileEx);
                     }
@@ -205,7 +210,7 @@ namespace FileManager
 
         private void showErrorsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(debug);
+            Set_Text(debug, textBox1);
         }
     }
 }

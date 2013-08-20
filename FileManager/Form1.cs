@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
@@ -27,7 +28,7 @@ namespace FileManager
 
         private static string[] FileExtensions = { ".mp3", ".wma", ".m4a", ".flac", ".ogg", ".alac", ".aiff" };
 
-        private static string debug = "";
+        private static List<FileInfo> FileEx = new List<FileInfo>();
 
         #endregion
 
@@ -69,6 +70,11 @@ namespace FileManager
 
                 button2.Text = "Modify";
             }
+        }
+
+        private void showErrorsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //Set_Text(debug, textBox1);
         }
 
         #endregion
@@ -119,10 +125,10 @@ namespace FileManager
                          new XAttribute("LastWriteTime", file.LastWriteTime),
                          new XAttribute("FilePath", file.FullName),
                          new XAttribute("FolderParent", file.Directory.FullName),
-                         new XAttribute("MediaTitle", filetag.Tag.Title ?? String.Empty),
-                         new XAttribute("MediaAlbum", filetag.Tag.Album ?? String.Empty),
+                         new XAttribute("MediaTitle", Clean_String(filetag.Tag.Title) ?? string.Empty),
+                         new XAttribute("MediaAlbum", Clean_String(filetag.Tag.Album) ?? string.Empty),
                          new XAttribute("MediaYear", filetag.Tag.Year),
-                         new XAttribute("MediaArtists", string.Join(",", filetag.Tag.AlbumArtists) ?? String.Empty)));
+                         new XAttribute("MediaArtists", Clean_String(string.Join(",", filetag.Tag.AlbumArtists)) ?? string.Empty)));
             }
             catch (Exception e)
             { throw e; }
@@ -130,11 +136,31 @@ namespace FileManager
             return Xnode;
         }
 
+        private static XElement ComputeFileInfo(FileInfo[] Flist, XElement Xnode, List<FileInfo> FileEx)
+        {
+            foreach (FileInfo file in Flist.Except(FileEx))
+            {
+                if (FileExtensions.Any(str => str == file.Extension))
+                {
+                    try
+                    {
+                        Xnode = ProcessFileInfo(Xnode, file);
+                    }
+                    catch (Exception e)
+                    {
+                        FileEx.Add(file);
+
+                        ComputeFileInfo(Flist, Xnode, FileEx);
+                    }
+                }
+            }
+
+            return Xnode;
+        }
+
         private static XElement GetDirectoryXml(String dir, string[] FileExtensions)
         {
             DirectoryInfo Dir = new DirectoryInfo(dir);
-
-            List<FileInfo> FileEx = new List<FileInfo>();
 
             var info = new XElement("Directory",
                        new XAttribute("Name", Dir.Name),
@@ -147,33 +173,11 @@ namespace FileManager
             info = ComputeFileInfo(Dir.GetFiles(), info, FileEx);
 
             foreach (var subDir in Dir.GetDirectories())
-                info.Add(GetDirectoryXml(subDir.FullName, FileExtensions));
-
-            return info;
-        }
-
-        private static XElement ComputeFileInfo(FileInfo[] Flist, XElement Xnode, List<FileInfo> FileEx)
-        {
-            foreach (FileInfo file in Flist.Where(f => !FileEx.Contains(f)))
             {
-                if (FileExtensions.Any(str => str == file.Extension)) //&& FileEx.Any(str => str != file.FullName))
-                {
-                    try
-                    {
-                        Xnode = ProcessFileInfo(Xnode, file);
-                    }
-                    catch (Exception e)
-                    {
-                        debug += file.FullName + "\n";//" file:" + file.FullName;
-
-                        FileEx.Add(file);
-
-                        ComputeFileInfo(Flist, Xnode, FileEx);
-                    }
-                }
+                info.Add(GetDirectoryXml(subDir.FullName, FileExtensions));
             }
 
-            return Xnode;
+            return info;
         }
 
         #endregion
@@ -184,7 +188,7 @@ namespace FileManager
         {
             if (msg != String.Empty && msg != null)
             {
-                Utils.CheckSetMethodValue(o, "Text", Utils.CheckGetMethodValue(o, "Text") + Environment.NewLine + msg);
+                Utils.CheckSetMethodValue(o, "AppendText", msg + Environment.NewLine);
             }
         }
 
@@ -192,25 +196,27 @@ namespace FileManager
         {
             if (msg != String.Empty && msg != null)
             {
-                Utils.CheckSetMethodValue(o, "Text", msg);
+                Utils.CheckSetPropertyValue(o, "Text", msg);
             }
         }
 
         private static string Get_Text(Object o)
         {
-            return Utils.CheckGetMethodValue(o, "Text");
+            return Utils.CheckGetPropertyValue(o, "Text");
         }
 
         private static void Set_ButtonState(bool state, Object o)
         {
-            Utils.CheckSetMethodValue(o, "Enabled", state);
+            Utils.CheckSetPropertyValue(o, "Enabled", state);
+        }
+
+        private static string Clean_String(string txt)
+        {
+            StringBuilder sb = new StringBuilder(txt);
+
+            return sb.Replace("\0", string.Empty).ToString();
         }
 
         #endregion
-
-        private void showErrorsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Set_Text(debug, textBox1);
-        }
     }
 }

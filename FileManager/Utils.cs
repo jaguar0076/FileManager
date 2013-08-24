@@ -1,76 +1,58 @@
-﻿using System;
-using System.Reflection;
-
-namespace FileManager
+﻿namespace FileManager
 {
     static class Utils
     {
-        public static bool HasProperty(this object o, string methodName)
+        private static bool HasProperty(this object o, string propertyName)
         {
-            return o.GetType().GetProperty(methodName) != null;
+            return o.GetType().GetProperty(propertyName) != null;
         }
 
-        public static void SetPropertyValue(this object o, string methodName, string val)
+        private static void SetPropertyValue(this object o, string propertyName, string val)
         {
-            try
-            {
-                o.GetType().GetProperty(methodName).SetValue(o, val, null);
-            }
-            catch (Exception ex)
-            { /*throw exception here*/ }
+            o.GetType().GetProperty(propertyName).SetValue(o, val, null);
         }
 
-        public static void SetPropertyValue(this object o, string methodName, bool val)
+        private static void SetPropertyValue(this object o, string propertyName, bool val)
         {
-            try
-            {
-                o.GetType().GetProperty(methodName).SetValue(o, val, null);
-            }
-            catch (Exception ex)
-            { /*throw exception here*/ }
+            o.GetType().GetProperty(propertyName).SetValue(o, val, null);
         }
 
-        public static string GetPropertyValue(this object o, string methodName)
+        private static string GetPropertyValue(this object o, string propertyName)
         {
             string val = "";
 
-            try
-            {
-                val = (string)o.GetType().GetProperty(methodName).GetValue(o, null);
-            }
-            catch (Exception ex)
-            { /*throw exception here*/ }
+            val = (string)o.GetType().GetProperty(propertyName).GetValue(o, null);
 
             return val;
         }
 
-        public static void CheckSetPropertyValue(this object o, string methodName, string val)
+        internal static void CheckSetPropertyValue(this object o, string propertyName, string val)
         {
-            if (HasProperty(o, methodName))
+            if (HasProperty(o, propertyName))
             {
-                SetPropertyValue(o, methodName, val);
+                SetPropertyValue(o, propertyName, val);
             }
             else
             { /*throw exception here*/ }
         }
 
-        public static void CheckSetPropertyValue(this object o, string methodName, bool val)
+        internal static void CheckSetPropertyValue(this object o, string propertyName, bool val)
         {
-            if (HasProperty(o, methodName))
+            if (HasProperty(o, propertyName))
             {
-                SetPropertyValue(o, methodName, val);
+                SetPropertyValue(o, propertyName, val);
             }
             else
             { /*throw exception here*/ }
         }
 
-        public static string CheckGetPropertyValue(this object o, string methodName)
+        internal static string CheckGetPropertyValue(this object o, string propertyName)
         {
             string val = "";
 
-            if (HasProperty(o, methodName))
+            if (HasProperty(o, propertyName))
             {
-                val = GetPropertyValue(o, methodName);
+                val = GetPropertyValue(o, propertyName);
             }
             else
             { /*throw exception here*/ }
@@ -78,22 +60,18 @@ namespace FileManager
             return val;
         }
 
-        public static bool HasMethod(this object o, string methodName)
+        private static bool HasMethod(this object o, string methodName)
         {
             return o.GetType().GetMethod(methodName) != null;
         }
 
-        public static void SetMethodValue(this object o, string methodName, string val)
+        private static void SetMethodValue(this object o, string methodName, string val)
         {
-            try
-            {
-                o.GetType().GetMethod(methodName).Invoke(o, new object[] { val });
-            }
-            catch (Exception ex)
-            { /*throw exception here*/ }
+            o.GetType().GetMethod(methodName).Invoke(o, new object[] { val });
+
         }
 
-        public static void CheckSetMethodValue(this object o, string methodName, string val)
+        internal static void CheckSetMethodValue(this object o, string methodName, string val)
         {
             if (HasMethod(o, methodName))
             {

@@ -4,11 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using System.Xml.Xsl;
 
 namespace FileManager
 {
     static class ProcessXml
     {
+
+        #region Calculate folder size
+
         private static long DirectorySize(DirectoryInfo dInfo)
         {
             long totalSize = dInfo.EnumerateFiles().Sum(file => file.Length);
@@ -17,6 +21,10 @@ namespace FileManager
 
             return totalSize;
         }
+
+        #endregion
+
+        #region Process Xml
 
         private static void ProcessFileInfo(ref XElement Xnode, FileInfo file)
         {
@@ -82,11 +90,17 @@ namespace FileManager
             return info;
         }
 
+        #endregion
+
+        #region String Cleanup
+
         private static string Clean_String(string txt)
         {
             StringBuilder sb = new StringBuilder(txt);
 
             return sb.Replace("\0", string.Empty).ToString();
         }
+
+        #endregion
     }
 }

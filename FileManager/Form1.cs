@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Threading;
 using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Xsl;
+using System.Text;
 
 /*
  * prochaines étape:
  * 
+ * - Créer un XML writer pour stockerle document, le document va être historisé à la création de chaque version du document
+ * - Créer un XML Reader lire le document et y appliquer le traitement XSLT
  * - ajouter un watcher sur les folder pour monitorer les changements, vérifier les changements détecté par le Watcher et 
  *   comparer le XML stocké et les folder ayant changés, ceci sera plus facile de stocker les modifications dans les folders
  *   en utilisant le XML et les nodes pour gérer les modifications dans l'arborescence. Toutes les informations devront être
@@ -81,7 +86,31 @@ namespace FileManager
 
                 try
                 {
-                    Invoke(new set_Text(Append_Text), ProcessXml.GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).ToString(), textBox1);
+                    //Invoke(new set_Text(Append_Text), ProcessXml.GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).ToString(), textBox1);
+
+                    StringBuilder sb = new StringBuilder(DateTime.Now.ToString("ddMMyyyyHHmmss") + ".xml");
+
+                    XmlWriterSettings xws = new XmlWriterSettings();
+
+                    xws.Indent = true;
+
+                    xws.NewLineOnAttributes = false;
+
+                    xws.OmitXmlDeclaration = true;
+
+                    XmlWriter writer = XmlWriter.Create(sb.ToString(), xws);
+
+                    ProcessXml.GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).Save(writer);
+
+                    writer.Close();
+
+                    writer.Flush();
+
+                    //var myXslTrans = new XslCompiledTransform();
+
+                    //myXslTrans.Load("");
+
+                    //myXslTrans.Transform("", "");
                 }
                 catch (Exception e)
                 { Invoke(new set_Text(Append_Text), e.Message, textBox1); }

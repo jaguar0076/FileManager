@@ -2,20 +2,35 @@
 {
     static class Utils
     {
+        #region Check property & method name
+
         private static bool HasProperty(this object o, string propertyName)
         {
             return o.GetType().GetProperty(propertyName) != null;
         }
 
-        private static void SetPropertyValue(this object o, string propertyName, string val)
+        private static bool HasMethod(this object o, string methodName)
         {
-            o.GetType().GetProperty(propertyName).SetValue(o, val, null);
+            return o.GetType().GetMethod(methodName) != null;
         }
+
+        #endregion
+
+        #region Set property & method value
 
         private static void SetPropertyValue(this object o, string propertyName, bool val)
         {
             o.GetType().GetProperty(propertyName).SetValue(o, val, null);
         }
+
+        private static void SetMethodValue(this object o, string methodName, string val)
+        {
+            o.GetType().GetMethod(methodName).Invoke(o, new object[] { val });
+        }
+
+        #endregion
+
+        #region Get property value
 
         private static string GetPropertyValue(this object o, string propertyName)
         {
@@ -26,15 +41,9 @@
             return val;
         }
 
-        internal static void CheckSetPropertyValue(this object o, string propertyName, string val)
-        {
-            if (HasProperty(o, propertyName))
-            {
-                SetPropertyValue(o, propertyName, val);
-            }
-            else
-            { /*throw exception here*/ }
-        }
+        #endregion
+
+        #region Check/Set property & method value
 
         internal static void CheckSetPropertyValue(this object o, string propertyName, bool val)
         {
@@ -60,17 +69,6 @@
             return val;
         }
 
-        private static bool HasMethod(this object o, string methodName)
-        {
-            return o.GetType().GetMethod(methodName) != null;
-        }
-
-        private static void SetMethodValue(this object o, string methodName, string val)
-        {
-            o.GetType().GetMethod(methodName).Invoke(o, new object[] { val });
-
-        }
-
         internal static void CheckSetMethodValue(this object o, string methodName, string val)
         {
             if (HasMethod(o, methodName))
@@ -80,5 +78,7 @@
             else
             { /*throw exception here*/ }
         }
+
+        #endregion
     }
 }

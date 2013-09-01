@@ -4,20 +4,18 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using System.Xml.Xsl;
 
 namespace FileManager
 {
     static class ProcessXml
     {
-
         #region Calculate folder size
 
-        private static long DirectorySize(DirectoryInfo dInfo)
+        private static long DirectorySize(DirectoryInfo dInfo, string[] FileExtensions)
         {
-            long totalSize = dInfo.EnumerateFiles().Sum(file => file.Length);
+            long totalSize = dInfo.EnumerateFiles().Where(file => FileExtensions.Contains(file.Extension.ToLower())).Sum(file => file.Length);
 
-            totalSize += dInfo.EnumerateDirectories().Sum(dir => DirectorySize(dir));
+            totalSize += dInfo.EnumerateDirectories().Sum(dir => DirectorySize(dir, FileExtensions));
 
             return totalSize;
         }
@@ -74,15 +72,18 @@ namespace FileManager
 
             var info = new XElement("Directory",
                        new XAttribute("Name", Dir.Name),
-                       new XAttribute("DirectorySize", DirectorySize(Dir)),
+                       new XAttribute("DirectorySize", DirectorySize(Dir, FileExtensions)),
                        new XAttribute("DirectoryPath", Dir.FullName),
                        new XAttribute("CreationTime", Dir.CreationTime),
                        new XAttribute("LastWriteTime", Dir.LastWriteTime),
                        new XAttribute("ParentFolder", Dir.Parent.FullName));
 
-            ComputeFileInfo(Dir.GetFiles(), ref info, FileEx, FileExtensions);
+            ComputeFileInfo(Dir.EnumerateFiles().Where(f => FileExtensions.Contains(f.Extension.ToLower())).ToArray(),
+                            ref info,
+                            FileEx,
+                            FileExtensions);
 
-            foreach (var subDir in Dir.GetDirectories())
+            foreach (var subDir in Dir.EnumerateDirectories())
             {
                 info.Add(GetDirectoryXml(subDir.FullName, FileExtensions));
             }

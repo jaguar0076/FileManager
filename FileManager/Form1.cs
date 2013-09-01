@@ -1,9 +1,8 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
-using System.Xml.Xsl;
-using System.Text;
 
 /*
  * prochaines étape:
@@ -17,8 +16,6 @@ using System.Text;
  *  Deux solutions techniques sont possibles:
  * - Création de plusieurs documents xml et comparaison entre ceux-ci pour détecter les changements entre deux versions et ne réanalyser que la portion qui nous intéresse
  * - Création d'un watcher qui va analyser le folder si un changement a été effectué et à quel endroit il a été fait
- * 
- *
  * 
  */
 
@@ -74,11 +71,6 @@ namespace FileManager
             }
         }
 
-        private void showErrorsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            //Set_Text(debug, textBox1);
-        }
-
         #endregion
 
         #region Thread
@@ -91,8 +83,6 @@ namespace FileManager
 
                 try
                 {
-                    //Invoke(new set_Text(Append_Text), ProcessXml.GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).ToString(), textBox1);
-
                     StringBuilder sb = new StringBuilder(DateTime.Now.ToString("ddMMyyyyHHmmss") + ".xml");
 
                     XmlWriterSettings xws = new XmlWriterSettings();
@@ -107,9 +97,9 @@ namespace FileManager
 
                     ProcessXml.GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).Save(writer);
 
-                    writer.Close();
-
                     writer.Flush();
+
+                    writer.Close();
 
                     //var myXslTrans = new XslCompiledTransform();
 
@@ -126,21 +116,13 @@ namespace FileManager
 
         #endregion
 
-        #region Text Functions
+        #region Misc Functions
 
         private static void Append_Text(string msg, Object o)
         {
             if (msg != String.Empty && msg != null)
             {
                 Utils.CheckSetMethodValue(o, "AppendText", msg + Environment.NewLine);
-            }
-        }
-
-        private static void Set_Text(string msg, Object o)
-        {
-            if (msg != String.Empty && msg != null)
-            {
-                Utils.CheckSetPropertyValue(o, "Text", msg);
             }
         }
 

@@ -8,12 +8,17 @@ using System.Text;
 /*
  * prochaines étape:
  * 
- * - Créer un XML writer pour stockerle document, le document va être historisé à la création de chaque version du document
  * - Créer un XML Reader lire le document et y appliquer le traitement XSLT
  * - ajouter un watcher sur les folder pour monitorer les changements, vérifier les changements détecté par le Watcher et 
  *   comparer le XML stocké et les folder ayant changés, ceci sera plus facile de stocker les modifications dans les folders
  *   en utilisant le XML et les nodes pour gérer les modifications dans l'arborescence. Toutes les informations devront être
  *   sérialisées facilement.
+ * 
+ *  Deux solutions techniques sont possibles:
+ * - Création de plusieurs documents xml et comparaison entre ceux-ci pour détecter les changements entre deux versions et ne réanalyser que la portion qui nous intéresse
+ * - Création d'un watcher qui va analyser le folder si un changement a été effectué et à quel endroit il a été fait
+ * 
+ *
  * 
  */
 

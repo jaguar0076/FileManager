@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -46,7 +48,11 @@ namespace FileManager
         public Form1()
         {
             InitializeComponent();
+
+            InitializeWatcher();
         }
+
+        #region Event
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -70,6 +76,25 @@ namespace FileManager
                 button2.Text = "Modify";
             }
         }
+
+        static void watcher_Renamed(object sender, RenamedEventArgs e)
+        {
+            Console.WriteLine(e.OldName + " is now: " + e.Name);
+        }
+        static void watcher_Changed(object sender, FileSystemEventArgs e)
+        {
+            Console.WriteLine(e.Name + " has changed");
+        }
+        static void watcher_Deleted(object sender, FileSystemEventArgs e)
+        {
+            Console.WriteLine(e.Name + " file has been deleted");
+        }
+        static void watcher_Created(object sender, FileSystemEventArgs e)
+        {
+            Console.WriteLine(e.Name + " file has been created.");
+        }
+
+        #endregion
 
         #endregion
 
@@ -134,6 +159,31 @@ namespace FileManager
         private static void Set_ButtonState(bool state, Object o)
         {
             Utils.CheckSetPropertyValue(o, "Enabled", state);
+        }
+
+        #endregion
+
+        #region
+
+        private void InitializeWatcher()
+        {
+            FileSystemWatcher watcher = new FileSystemWatcher();
+
+            int index = Assembly.GetExecutingAssembly().Location.LastIndexOf("\\");
+
+            string _path = Assembly.GetExecutingAssembly().Location.Substring(0, index);
+
+            watcher.Path = _path;
+
+            watcher.EnableRaisingEvents = true;
+
+            watcher.Created += new FileSystemEventHandler(watcher_Created);
+
+            watcher.Deleted += new FileSystemEventHandler(watcher_Deleted);
+
+            watcher.Changed += new FileSystemEventHandler(watcher_Changed);
+
+            watcher.Renamed += new RenamedEventHandler(watcher_Renamed);
         }
 
         #endregion

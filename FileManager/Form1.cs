@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Xsl;
 
 /*
  * prochaines étape:
@@ -40,6 +41,8 @@ namespace FileManager
         private delegate string get_Text(Object o);
 
         private delegate void set_ButtonState(bool val, Object o);
+
+        private delegate void Append_Textbox(string txt);
 
         #endregion
 
@@ -77,21 +80,28 @@ namespace FileManager
             }
         }
 
-        static void watcher_Renamed(object sender, RenamedEventArgs e)
+        /*static*/
+        private void watcher_Renamed(object sender, RenamedEventArgs e)
         {
-            Console.WriteLine(e.OldName + " is now: " + e.Name);
+            ProcessEvent(e);
         }
-        static void watcher_Changed(object sender, FileSystemEventArgs e)
+
+        /*static*/
+        private void watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            Console.WriteLine(e.Name + " has changed");
+            ProcessEvent(e);
         }
-        static void watcher_Deleted(object sender, FileSystemEventArgs e)
+
+        /*static*/
+        private void watcher_Deleted(object sender, FileSystemEventArgs e)
         {
-            Console.WriteLine(e.Name + " file has been deleted");
+            ProcessEvent(e);
         }
-        static void watcher_Created(object sender, FileSystemEventArgs e)
+
+        /*static*/
+        private void watcher_Created(object sender, FileSystemEventArgs e)
         {
-            Console.WriteLine(e.Name + " file has been created.");
+            ProcessEvent(e);
         }
 
         #endregion
@@ -126,11 +136,11 @@ namespace FileManager
 
                     writer.Close();
 
-                    //var myXslTrans = new XslCompiledTransform();
+                    var myXslTrans = new XslCompiledTransform();
 
-                    //myXslTrans.Load("");
+                    myXslTrans.Load("Stylesheet.xslt");
 
-                    //myXslTrans.Transform("", "");
+                    myXslTrans.Transform(sb.ToString(), "Xtrans_" + sb.ToString());
                 }
                 catch (Exception e)
                 { Invoke(new set_Text(Append_Text), e.Message, textBox1); }
@@ -163,7 +173,7 @@ namespace FileManager
 
         #endregion
 
-        #region
+        #region Watcher
 
         private void InitializeWatcher()
         {
@@ -187,5 +197,14 @@ namespace FileManager
         }
 
         #endregion
+
+        private void ProcessEvent(EventArgs e)
+        {
+            //string a = e.GetType().ToString();
+
+            //((RenamedEventArgs)e).ChangeType.GetType().Name()
+
+            //Invoke(new set_Text(Append_Text), Utils.CheckGetPropertyValue(e, "Name") + Utils.CheckGetPropertyValue(e, "ChangeType"), textBox1);
+        }
     }
 }

@@ -24,7 +24,7 @@ namespace FileManager
 
         #region Process Xml
 
-        private static void ProcessFileInfo(ref XElement Xnode, FileInfo file)
+        private static void CollectXmlFileInfo(ref XElement Xnode, FileInfo file)
         {
             TagLib.File filetag = TagLib.File.Create(file.FullName);
 
@@ -46,20 +46,15 @@ namespace FileManager
         {
             foreach (var file in Flist.Except(FileEx))
             {
-                if (!FileExtensions.Any(str => str == file.Extension))
-                { continue; }
-                else
+                try
                 {
-                    try
-                    {
-                        ProcessFileInfo(ref Xnode, file);
-                    }
-                    catch
-                    {
-                        FileEx.Add(file);
+                    CollectXmlFileInfo(ref Xnode, file);
+                }
+                catch
+                {
+                    FileEx.Add(file);
 
-                        ComputeFileInfo(Flist, ref Xnode, FileEx, FileExtensions);
-                    }
+                    ComputeFileInfo(Flist, ref Xnode, FileEx, FileExtensions);
                 }
             }
         }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
   <xsl:output method="xml" indent="yes"/>
 
@@ -8,7 +8,7 @@
 
   <xsl:key match="File[@MediaYear != 0]" name="MediaYears" use="@MediaYear"/>
 
-  <xsl:key match="File" name="AlbumArtists" use="@MediaArtists"/>
+  <xsl:key match="File[@MediaArtists != '']" name="AlbumArtists" use="@MediaArtists"/>
 
   <xsl:template match="/">
 
@@ -39,22 +39,22 @@
     </xsl:for-each>
 
   </xsl:template>
-  <!--
-  <xsl:template match="/File">
+<!--
+  <xsl:template match="/">
 
-    <xsl:for-each select="//File[generate-id(.)= generate-id(key('MediaYears', @MediaYear)[1])]">
+    <xsl:for-each select="//File[generate-id(.)= generate-id(key('AlbumArtists', @MediaArtists)[1])]">
 
-      <xsl:sort select="@MediaYear"/>
+      <xsl:sort select="@MediaArtists"/>
 
-      <MediaYear>
+      <MediaArtists>
 
-        <xsl:attribute name="Year">
+        <xsl:attribute name="AlbumArtists">
 
-          <xsl:value-of select="@MediaYear"/>
+          <xsl:value-of select="@MediaArtists"/>
 
         </xsl:attribute>
 
-        <xsl:for-each select="key('MediaYears', @MediaYear)">
+        <xsl:for-each select="key('AlbumArtists', @MediaArtists)">
 
           <xsl:copy>
 
@@ -64,7 +64,7 @@
 
         </xsl:for-each>
 
-      </MediaYear>
+      </MediaArtists>
 
     </xsl:for-each>
 

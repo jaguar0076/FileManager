@@ -58,7 +58,7 @@ namespace FileManager
                 }
             }
         }
-
+        //main function
         internal static XElement GetDirectoryXml(String dir, string[] FileExtensions)
         {
             DirectoryInfo Dir = new DirectoryInfo(dir);

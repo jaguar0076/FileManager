@@ -19,7 +19,7 @@
 
     </xsl:variable>
 
-    <xsl:apply-templates mode="Artist_Display" select="ext:node-set($VPass1)"/>
+    <!--<xsl:apply-templates mode="Artist_Display" select="ext:node-set($VPass1)"/>-->
 
   </xsl:template>
 
@@ -52,7 +52,7 @@
     </xsl:for-each>
 
   </xsl:template>
-
+  <!--
   <xsl:template match="/" mode="Artist_Display">
 
     <xsl:for-each select="//File[generate-id(.)= generate-id(key('AlbumArtists', @MediaArtists)[1])]">
@@ -77,11 +77,11 @@
 
         <xsl:for-each select="key('AlbumArtists', @MediaArtists)">
 
-          <xsl:copy>
+          <xsl:copy>-->
 
             <!--<xsl:copy-of select="ancestor::MediaYear[1]"/>-->
 
-            <xsl:copy-of select="node() | @* | node()"/>
+            <!--<xsl:copy-of select="node() | @* | node()"/>
 
           </xsl:copy>
 
@@ -92,6 +92,6 @@
       
     </xsl:for-each>
 
-  </xsl:template>
+  </xsl:template>-->
 
 </xsl:stylesheet>

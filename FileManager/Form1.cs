@@ -138,7 +138,7 @@ namespace FileManager
 
                     var myXslTrans = new XslCompiledTransform();
 
-                    myXslTrans.Load("Stylesheet.xslt");
+                    myXslTrans.Load("StyleSheet_2.xslt");
 
                     myXslTrans.Transform(sb.ToString(), "Xtrans_" + sb.ToString());
                 }

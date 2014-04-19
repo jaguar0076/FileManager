@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Xsl;
 
 /*
@@ -118,35 +119,62 @@ namespace FileManager
 
                 try
                 {
-                    StringBuilder sb = new StringBuilder(DateTime.Now.ToString("ddMMyyyyHHmmss") + ".xml");
+                    XElement XResult = ProcessXml.GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions);
 
-                    XmlWriterSettings xws = new XmlWriterSettings();
+                    StringBuilder Sbuild = TransformXml(XResult.ToString(), "StyleSheet_2.xslt");
 
-                    xws.Indent = true;
+                    XElement element = XElement.Parse("<root>" + Sbuild.ToString() + "</root>");
 
-                    xws.NewLineOnAttributes = false;
+                    foreach (var MediaYear in element.Descendants("MediaYear"))
+                    {
+                        Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value);
 
-                    xws.OmitXmlDeclaration = true;
+                        foreach (var MediaArtists in MediaYear.Descendants("MediaArtists"))
+                        {
+                            Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value);
 
-                    XmlWriter writer = XmlWriter.Create(sb.ToString(), xws);
+                            foreach (var MediaAlbum in MediaArtists.Descendants("MediaAlbum"))
+                            {
+                                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value + "\\" + MediaAlbum.Attribute("Album").Value);
 
-                    ProcessXml.GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions).Save(writer);
+                                foreach (var File in MediaAlbum.Descendants("File"))
+                                {
+                                    //Invoke(new set_Text(Append_Text), "Copying " + (Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value + "\\" + MediaAlbum.Attribute("Album").Value + "\\" + File.Attribute("Name").Value), textBox1);
 
-                    writer.Flush();
-
-                    writer.Close();
-
-                    var myXslTrans = new XslCompiledTransform();
-
-                    myXslTrans.Load("StyleSheet_2.xslt");
-
-                    myXslTrans.Transform(sb.ToString(), "Xtrans_" + sb.ToString());
+                                    System.IO.File.Copy(File.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value + "\\" + MediaAlbum.Attribute("Album").Value + "\\" + File.Attribute("Name").Value), true);
+                                }
+                            }
+                        }
+                    }
                 }
                 catch (Exception e)
                 { Invoke(new set_Text(Append_Text), e.Message, textBox1); }
 
                 Invoke(new set_ButtonState(Set_ButtonState), true, button1);
             }
+        }
+
+        private StringBuilder TransformXml(string xml, string xslPath)
+        {
+            MemoryStream m = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+
+            XmlReader reader = XmlReader.Create(new StreamReader(m));
+
+            XslCompiledTransform transform = new XslCompiledTransform();
+
+            StringBuilder resultString = new StringBuilder();
+
+            XmlWriterSettings xws = new XmlWriterSettings();
+
+            xws.ConformanceLevel = ConformanceLevel.Fragment;
+
+            XmlWriter writer = XmlWriter.Create(resultString, xws);
+
+            transform.Load(xslPath);
+
+            transform.Transform(reader, writer);
+
+            return resultString;
         }
 
         #endregion

@@ -58,6 +58,7 @@ namespace FileManager
                 }
             }
         }
+
         //main function
         internal static XElement GetDirectoryXml(String dir, string[] FileExtensions)
         {

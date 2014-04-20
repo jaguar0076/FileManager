@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -7,11 +8,11 @@ using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
+using System.Collections.Generic;
 
 /*
  * prochaines étape:
  * 
- * - Créer un XML Reader lire le document et y appliquer le traitement XSLT
  * - ajouter un watcher sur les folder pour monitorer les changements, vérifier les changements détecté par le Watcher et 
  *   comparer le XML stocké et les folder ayant changés, ceci sera plus facile de stocker les modifications dans les folders
  *   en utilisant le XML et les nodes pour gérer les modifications dans l'arborescence. Toutes les informations devront être
@@ -20,6 +21,12 @@ using System.Xml.Xsl;
  *  Deux solutions techniques sont possibles:
  * - Création de plusieurs documents xml et comparaison entre ceux-ci pour détecter les changements entre deux versions et ne réanalyser que la portion qui nous intéresse
  * - Création d'un watcher qui va analyser le folder si un changement a été effectué et à quel endroit il a été fait
+ * 
+ * File name can't contain \/:*?<>|
+ * 
+ * A faire:
+ * Vérifier si l'on ne peut pas appliquer un dynamisme sur les crtères de tri dans le XSLT et dans le code
+ * Changer le fonctionnement pour ne plus utilier le XSLT mais Linq pour grouper les éléments XML
  * 
  */
 
@@ -127,19 +134,25 @@ namespace FileManager
 
                     foreach (var MediaYear in element.Descendants("MediaYear"))
                     {
+                        Invoke(new set_Text(Append_Text), "Creating directory " + MediaYear.Attribute("Year").Value, textBox1);
+
                         Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value);
 
                         foreach (var MediaArtists in MediaYear.Descendants("MediaArtists"))
                         {
+                            Invoke(new set_Text(Append_Text), "Creating directory " + MediaArtists.Attribute("Artist").Value, textBox1);
+
                             Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value);
 
                             foreach (var MediaAlbum in MediaArtists.Descendants("MediaAlbum"))
                             {
+                                Invoke(new set_Text(Append_Text), "Creating directory " + MediaAlbum.Attribute("Album").Value, textBox1);
+
                                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value + "\\" + MediaAlbum.Attribute("Album").Value);
 
                                 foreach (var File in MediaAlbum.Descendants("File"))
                                 {
-                                    //Invoke(new set_Text(Append_Text), "Copying " + (Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value + "\\" + MediaAlbum.Attribute("Album").Value + "\\" + File.Attribute("Name").Value), textBox1);
+                                    Invoke(new set_Text(Append_Text), "Copying to " + (Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value + "\\" + MediaAlbum.Attribute("Album").Value + "\\" + File.Attribute("Name").Value), textBox1);
 
                                     System.IO.File.Copy(File.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value + "\\" + MediaAlbum.Attribute("Album").Value + "\\" + File.Attribute("Name").Value), true);
                                 }
@@ -224,8 +237,6 @@ namespace FileManager
             watcher.Renamed += new RenamedEventHandler(watcher_Renamed);
         }
 
-        #endregion
-
         private void ProcessEvent(EventArgs e)
         {
             //string a = e.GetType().ToString();
@@ -234,5 +245,7 @@ namespace FileManager
 
             //Invoke(new set_Text(Append_Text), Utils.CheckGetPropertyValue(e, "Name") + Utils.CheckGetPropertyValue(e, "ChangeType"), textBox1);
         }
+
+        #endregion
     }
 }

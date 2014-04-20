@@ -26,7 +26,6 @@ using System.Collections.Generic;
  * 
  * A faire:
  * Vérifier si l'on ne peut pas appliquer un dynamisme sur les crtères de tri dans le XSLT et dans le code
- * Changer le fonctionnement pour ne plus utilier le XSLT mais Linq pour grouper les éléments XML
  * 
  */
 
@@ -132,8 +131,6 @@ namespace FileManager
                                   .GroupBy(i => i.Attribute("MediaYear").Value)
                                   .Select(g => g.Key))
                     {
-                        Invoke(new set_Text(Append_Text), year.ToString(), textBox1);
-
                         Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString());
 
                         foreach (var artist in XResult.Descendants("File")
@@ -141,8 +138,6 @@ namespace FileManager
                                   .GroupBy(i => i.Attribute("MediaArtists").Value)
                                   .Select(g => g.Key))
                         {
-                            Invoke(new set_Text(Append_Text), artist.ToString(), textBox1);
-
                             Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString());
 
                             foreach (var album in XResult.Descendants("File")
@@ -150,8 +145,6 @@ namespace FileManager
                                   .GroupBy(i => i.Attribute("MediaAlbum").Value)
                                   .Select(g => g.Key))
                             {
-                                Invoke(new set_Text(Append_Text), album.ToString(), textBox1);
-
                                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString());
 
                                 foreach (var file in XResult.Descendants("File")
@@ -159,18 +152,13 @@ namespace FileManager
                                       && i.Attribute("MediaArtists").Value == artist.ToString()
                                       && i.Attribute("MediaAlbum").Value == album.ToString()))
                                 {
-                                    if (File.Exists(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString() + "\\" + file.Attribute("Name").Value))
-                                    {
-                                        Invoke(new set_Text(Append_Text), "Existing file, trying to delete it....", textBox1);
+                                    Invoke(new set_Text(Append_Text), "Copying " + file.Attribute("FilePath").Value, textBox1);
 
-                                        System.IO.File.Delete(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString() + "\\" + file.Attribute("Name").Value);
-                                    }
-                                    else
-                                    {
-                                        Invoke(new set_Text(Append_Text), "New file, trying to create it....", textBox1);
+                                    System.IO.File.Copy(file.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString() + "\\" + file.Attribute("Name").Value), true);
 
-                                        System.IO.File.Copy(file.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString() + "\\" + file.Attribute("Name").Value));
-                                    }
+                                    FileInfo fileInfo = new FileInfo(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString() + "\\" + file.Attribute("Name").Value);
+
+                                    fileInfo.IsReadOnly = false;
                                 }
                             }
                         }

@@ -128,33 +128,49 @@ namespace FileManager
                 {
                     XElement XResult = ProcessXml.GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions);
 
-                    StringBuilder Sbuild = TransformXml(XResult.ToString(), "StyleSheet_2.xslt");
-
-                    XElement element = XElement.Parse("<root>" + Sbuild.ToString() + "</root>");
-
-                    foreach (var MediaYear in element.Descendants("MediaYear"))
+                    foreach (var year in XResult.Descendants("File")
+                                  .GroupBy(i => i.Attribute("MediaYear").Value)
+                                  .Select(g => g.Key))
                     {
-                        Invoke(new set_Text(Append_Text), "Creating directory " + MediaYear.Attribute("Year").Value, textBox1);
+                        Invoke(new set_Text(Append_Text), year.ToString(), textBox1);
 
-                        Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value);
+                        Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString());
 
-                        foreach (var MediaArtists in MediaYear.Descendants("MediaArtists"))
+                        foreach (var artist in XResult.Descendants("File")
+                                  .Where(i => i.Attribute("MediaYear").Value == year.ToString())
+                                  .GroupBy(i => i.Attribute("MediaArtists").Value)
+                                  .Select(g => g.Key))
                         {
-                            Invoke(new set_Text(Append_Text), "Creating directory " + MediaArtists.Attribute("Artist").Value, textBox1);
+                            Invoke(new set_Text(Append_Text), artist.ToString(), textBox1);
 
-                            Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value);
+                            Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString());
 
-                            foreach (var MediaAlbum in MediaArtists.Descendants("MediaAlbum"))
+                            foreach (var album in XResult.Descendants("File")
+                                  .Where(i => i.Attribute("MediaYear").Value == year.ToString() && i.Attribute("MediaArtists").Value == artist.ToString())
+                                  .GroupBy(i => i.Attribute("MediaAlbum").Value)
+                                  .Select(g => g.Key))
                             {
-                                Invoke(new set_Text(Append_Text), "Creating directory " + MediaAlbum.Attribute("Album").Value, textBox1);
+                                Invoke(new set_Text(Append_Text), album.ToString(), textBox1);
 
-                                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value + "\\" + MediaAlbum.Attribute("Album").Value);
+                                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString());
 
-                                foreach (var File in MediaAlbum.Descendants("File"))
+                                foreach (var file in XResult.Descendants("File")
+                                  .Where(i => i.Attribute("MediaYear").Value == year.ToString()
+                                      && i.Attribute("MediaArtists").Value == artist.ToString()
+                                      && i.Attribute("MediaAlbum").Value == album.ToString()))
                                 {
-                                    Invoke(new set_Text(Append_Text), "Copying to " + (Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value + "\\" + MediaAlbum.Attribute("Album").Value + "\\" + File.Attribute("Name").Value), textBox1);
+                                    if (File.Exists(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString() + "\\" + file.Attribute("Name").Value))
+                                    {
+                                        Invoke(new set_Text(Append_Text), "Existing file, trying to delete it....", textBox1);
 
-                                    System.IO.File.Copy(File.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + MediaYear.Attribute("Year").Value + "\\" + MediaArtists.Attribute("Artist").Value + "\\" + MediaAlbum.Attribute("Album").Value + "\\" + File.Attribute("Name").Value), true);
+                                        System.IO.File.Delete(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString() + "\\" + file.Attribute("Name").Value);
+                                    }
+                                    else
+                                    {
+                                        Invoke(new set_Text(Append_Text), "New file, trying to create it....", textBox1);
+
+                                        System.IO.File.Copy(file.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString() + "\\" + file.Attribute("Name").Value));
+                                    }
                                 }
                             }
                         }
@@ -165,29 +181,6 @@ namespace FileManager
 
                 Invoke(new set_ButtonState(Set_ButtonState), true, button1);
             }
-        }
-
-        private StringBuilder TransformXml(string xml, string xslPath)
-        {
-            MemoryStream m = new MemoryStream(Encoding.UTF8.GetBytes(xml));
-
-            XmlReader reader = XmlReader.Create(new StreamReader(m));
-
-            XslCompiledTransform transform = new XslCompiledTransform();
-
-            StringBuilder resultString = new StringBuilder();
-
-            XmlWriterSettings xws = new XmlWriterSettings();
-
-            xws.ConformanceLevel = ConformanceLevel.Fragment;
-
-            XmlWriter writer = XmlWriter.Create(resultString, xws);
-
-            transform.Load(xslPath);
-
-            transform.Transform(reader, writer);
-
-            return resultString;
         }
 
         #endregion

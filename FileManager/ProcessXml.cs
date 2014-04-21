@@ -7,11 +7,11 @@ using System.Xml.Linq;
 
 namespace FileManager
 {
-    static class ProcessXml
+    internal static class ProcessXml
     {
         #region Calculate folder size
 
-        private static long DirectorySize(DirectoryInfo dInfo, string[] FileExtensions)
+        internal static long DirectorySize(DirectoryInfo dInfo, string[] FileExtensions)
         {
             long totalSize = dInfo.EnumerateFiles().Where(file => FileExtensions.Contains(file.Extension.ToLower())).Sum(file => file.Length);
 
@@ -24,7 +24,7 @@ namespace FileManager
 
         #region Process Xml
 
-        private static void CollectXmlFileInfo(ref XElement Xnode, FileInfo file)
+        internal static void CollectXmlFileInfo(ref XElement Xnode, FileInfo file)
         {
             TagLib.File filetag = TagLib.File.Create(file.FullName);
 
@@ -42,7 +42,7 @@ namespace FileManager
                      new XAttribute("MediaArtists", Clean_String(string.Join(",", filetag.Tag.AlbumArtists)))));
         }
 
-        private static void ComputeFileInfo(FileInfo[] Flist, ref XElement Xnode, List<FileInfo> FileEx, string[] FileExtensions)
+        internal static void ComputeFileInfo(FileInfo[] Flist, ref XElement Xnode, List<FileInfo> FileEx, string[] FileExtensions)
         {
             foreach (var file in Flist.Except(FileEx))
             {
@@ -91,7 +91,7 @@ namespace FileManager
 
         #region String Cleanup
 
-        private static string Clean_String(string txt)
+        internal static string Clean_String(string txt)
         {
             StringBuilder sb = new StringBuilder(txt);
 

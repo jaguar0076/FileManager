@@ -2,13 +2,10 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
-using System.Xml;
 using System.Xml.Linq;
-using System.Xml.Xsl;
-using System.Collections.Generic;
 
 /*
  * prochaines étape:
@@ -19,13 +16,12 @@ using System.Collections.Generic;
  *   sérialisées facilement.
  * 
  *  Deux solutions techniques sont possibles:
- * - Création de plusieurs documents xml et comparaison entre ceux-ci pour détecter les changements entre deux versions et ne réanalyser que la portion qui nous intéresse
  * - Création d'un watcher qui va analyser le folder si un changement a été effectué et à quel endroit il a été fait
+ * 
+ * Stocker les tags dans un fichier de configuration
  * 
  * File name can't contain \/:*?<>|
  * 
- * A faire:
- * Vérifier si l'on ne peut pas appliquer un dynamisme sur les crtères de tri dans le XSLT et dans le code
  * 
  */
 
@@ -138,14 +134,15 @@ namespace FileManager
                                   .GroupBy(i => i.Attribute("MediaArtists").Value)
                                   .Select(g => g.Key))
                         {
-                            Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString());
+                            Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()));
 
                             foreach (var album in XResult.Descendants("File")
-                                  .Where(i => i.Attribute("MediaYear").Value == year.ToString() && i.Attribute("MediaArtists").Value == artist.ToString())
+                                  .Where(i => i.Attribute("MediaYear").Value == year.ToString()
+                                      && i.Attribute("MediaArtists").Value == artist.ToString())
                                   .GroupBy(i => i.Attribute("MediaAlbum").Value)
                                   .Select(g => g.Key))
                             {
-                                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString());
+                                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()));
 
                                 foreach (var file in XResult.Descendants("File")
                                   .Where(i => i.Attribute("MediaYear").Value == year.ToString()
@@ -154,9 +151,9 @@ namespace FileManager
                                 {
                                     Invoke(new set_Text(Append_Text), "Copying " + file.Attribute("FilePath").Value, textBox1);
 
-                                    System.IO.File.Copy(file.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString() + "\\" + file.Attribute("Name").Value), true);
+                                    System.IO.File.Copy(file.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()) + "\\" + file.Attribute("Name").Value), true);
 
-                                    FileInfo fileInfo = new FileInfo(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + artist.ToString() + "\\" + album.ToString() + "\\" + file.Attribute("Name").Value);
+                                    FileInfo fileInfo = new FileInfo(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()) + "\\" + file.Attribute("Name").Value);
 
                                     fileInfo.IsReadOnly = false;
                                 }
@@ -191,6 +188,11 @@ namespace FileManager
         private static void Set_ButtonState(bool state, Object o)
         {
             Utils.CheckSetPropertyValue(o, "Enabled", state);
+        }
+
+        private static string NameCleanup(string FileName)
+        {
+            return Regex.Replace(FileName, @"[\/?:*""><|]+", "-", RegexOptions.Compiled);
         }
 
         #endregion

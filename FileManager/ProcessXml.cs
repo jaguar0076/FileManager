@@ -23,23 +23,23 @@ namespace FileManager
         #endregion
 
         #region Process Xml
-
+        //Should be interesting to cleanup the useless tags
         internal static void CollectXmlFileInfo(ref XElement Xnode, FileInfo file)
         {
             TagLib.File filetag = TagLib.File.Create(file.FullName);
 
             Xnode.Add(new XElement("File",
                      new XAttribute("Name", file.Name),
-                     new XAttribute("Extension", file.Extension),
-                     new XAttribute("Length", file.Length),
-                     new XAttribute("CreationTime", file.CreationTime),
-                     new XAttribute("LastWriteTime", file.LastWriteTime),
+                     //new XAttribute("Extension", file.Extension),
+                     //new XAttribute("Length", file.Length),
+                     //new XAttribute("CreationTime", file.CreationTime),
+                     //new XAttribute("LastWriteTime", file.LastWriteTime),
                      new XAttribute("FilePath", file.FullName),
-                     new XAttribute("FolderParent", file.Directory.FullName),
+                     //new XAttribute("FolderParent", file.Directory.FullName),
                      new XAttribute("MediaTitle", Clean_String(filetag.Tag.Title)),
-                     new XAttribute("MediaAlbum", Clean_String(filetag.Tag.Album)),
+                     new XAttribute("MediaAlbum", Clean_String(filetag.Tag.Album ?? "Undefined")),
                      new XAttribute("MediaYear", filetag.Tag.Year),
-                     new XAttribute("MediaArtists", Clean_String(string.Join(",", filetag.Tag.AlbumArtists)))));
+                     new XAttribute("MediaArtists", Clean_String(string.Join(",", filetag.Tag.Performers ?? filetag.Tag.AlbumArtists) ?? "Undefined"))));
         }
 
         internal static void ComputeFileInfo(FileInfo[] Flist, ref XElement Xnode, List<FileInfo> FileEx, string[] FileExtensions)

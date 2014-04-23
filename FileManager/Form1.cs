@@ -125,6 +125,7 @@ namespace FileManager
 
                     foreach (var year in XResult.Descendants("File")
                                   .GroupBy(i => i.Attribute("MediaYear").Value)
+                                  .OrderBy(g => g.Key)
                                   .Select(g => g.Key))
                     {
                         Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString());
@@ -132,6 +133,7 @@ namespace FileManager
                         foreach (var artist in XResult.Descendants("File")
                                   .Where(i => i.Attribute("MediaYear").Value == year.ToString())
                                   .GroupBy(i => i.Attribute("MediaArtists").Value)
+                                  .OrderBy(g => g.Key)
                                   .Select(g => g.Key))
                         {
                             Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()));
@@ -140,6 +142,7 @@ namespace FileManager
                                   .Where(i => i.Attribute("MediaYear").Value == year.ToString()
                                       && i.Attribute("MediaArtists").Value == artist.ToString())
                                   .GroupBy(i => i.Attribute("MediaAlbum").Value)
+                                  .OrderBy(g => g.Key)
                                   .Select(g => g.Key))
                             {
                                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()));

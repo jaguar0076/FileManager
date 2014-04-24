@@ -22,7 +22,6 @@ using System.Xml.Linq;
  * 
  * File name can't contain \/:*?<>|
  * 
- * 
  */
 
 namespace FileManager
@@ -34,6 +33,8 @@ namespace FileManager
         private Thread MyThread;
 
         private static string[] FileExtensions = { ".mp3", ".wma", ".m4a", ".flac", ".ogg", ".alac", ".aiff" };
+
+        private FileSystemWatcher watcher;
 
         #endregion
 
@@ -86,25 +87,25 @@ namespace FileManager
         /*static*/
         private void watcher_Renamed(object sender, RenamedEventArgs e)
         {
-            ProcessEvent(e);
+            ProcessEvent(sender, e);
         }
 
         /*static*/
         private void watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            ProcessEvent(e);
+            ProcessEvent(sender, e);
         }
 
         /*static*/
         private void watcher_Deleted(object sender, FileSystemEventArgs e)
         {
-            ProcessEvent(e);
+            ProcessEvent(sender, e);
         }
 
         /*static*/
         private void watcher_Created(object sender, FileSystemEventArgs e)
         {
-            ProcessEvent(e);
+            ProcessEvent(sender, e);
         }
 
         #endregion
@@ -204,15 +205,17 @@ namespace FileManager
 
         private void InitializeWatcher()
         {
-            FileSystemWatcher watcher = new FileSystemWatcher();
+            watcher = new FileSystemWatcher();
 
-            int index = Assembly.GetExecutingAssembly().Location.LastIndexOf("\\");
-
-            string _path = Assembly.GetExecutingAssembly().Location.Substring(0, index);
+            string _path = "D:\\Ma musique\\";
 
             watcher.Path = _path;
 
-            watcher.EnableRaisingEvents = true;
+            watcher.NotifyFilter = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastWrite;
+
+            watcher.Filter = "*.*";
+
+            watcher.IncludeSubdirectories = true;
 
             watcher.Created += new FileSystemEventHandler(watcher_Created);
 
@@ -221,15 +224,15 @@ namespace FileManager
             watcher.Changed += new FileSystemEventHandler(watcher_Changed);
 
             watcher.Renamed += new RenamedEventHandler(watcher_Renamed);
+
+            watcher.EnableRaisingEvents = true;
         }
 
-        private void ProcessEvent(EventArgs e)
+        private void ProcessEvent(object source, FileSystemEventArgs e)
         {
-            //string a = e.GetType().ToString();
+            //to-do: implement a way to analyze the folder/file
 
-            //((RenamedEventArgs)e).ChangeType.GetType().Name()
-
-            //Invoke(new set_Text(Append_Text), Utils.CheckGetPropertyValue(e, "Name") + Utils.CheckGetPropertyValue(e, "ChangeType"), textBox1);
+            Invoke(new set_Text(Append_Text), e.FullPath + " " + e.ChangeType, textBox1);
         }
 
         #endregion

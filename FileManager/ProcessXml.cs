@@ -30,12 +30,12 @@ namespace FileManager
 
             Xnode.Add(new XElement("File",
                      new XAttribute("Name", file.Name),
-                     //new XAttribute("Extension", file.Extension),
-                     //new XAttribute("Length", file.Length),
-                     //new XAttribute("CreationTime", file.CreationTime),
-                     //new XAttribute("LastWriteTime", file.LastWriteTime),
+                //new XAttribute("Extension", file.Extension),
+                //new XAttribute("Length", file.Length),
+                //new XAttribute("CreationTime", file.CreationTime),
+                //new XAttribute("LastWriteTime", file.LastWriteTime),
                      new XAttribute("FilePath", file.FullName),
-                     //new XAttribute("FolderParent", file.Directory.FullName),
+                //new XAttribute("FolderParent", file.Directory.FullName),
                      new XAttribute("MediaTitle", Clean_String(filetag.Tag.Title)),
                      new XAttribute("MediaAlbum", Clean_String(filetag.Tag.Album ?? "Undefined")),
                      new XAttribute("MediaYear", filetag.Tag.Year),
@@ -51,7 +51,7 @@ namespace FileManager
                     CollectXmlFileInfo(ref Xnode, file);
                 }
                 catch
-                {
+                {//Maybe it would be interesting to store all the corrects files and not only the bad ones to avoid computing all the XML again
                     FileEx.Add(file);
 
                     ComputeFileInfo(Flist, ref Xnode, FileEx, FileExtensions);
@@ -65,7 +65,7 @@ namespace FileManager
             DirectoryInfo Dir = new DirectoryInfo(dir);
 
             List<FileInfo> FileEx = new List<FileInfo>();
-
+            //the informations about the folder are not mandatory, maybe we can delete this part
             var info = new XElement("Directory",
                        new XAttribute("Name", Dir.Name),
                        new XAttribute("DirectorySize", DirectorySize(Dir, FileExtensions)),

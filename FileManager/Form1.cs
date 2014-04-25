@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
@@ -10,17 +9,12 @@ using System.Xml.Linq;
 /*
  * prochaines étape:
  * 
- * - ajouter un watcher sur les folder pour monitorer les changements, vérifier les changements détecté par le Watcher et 
+ * - ajouter un watcher sur les folder pour monitorer les changements, vérifier les changements détectés par le Watcher et 
  *   comparer le XML stocké et les folder ayant changés, ceci sera plus facile de stocker les modifications dans les folders
- *   en utilisant le XML et les nodes pour gérer les modifications dans l'arborescence. Toutes les informations devront être
- *   sérialisées facilement.
- * 
- *  Deux solutions techniques sont possibles:
- * - Création d'un watcher qui va analyser le folder si un changement a été effectué et à quel endroit il a été fait
- * 
+ *   en utilisant le XML et les nodes pour gérer les modifications dans l'arborescence (toutes les informations devront être
+ *   sérialisées facilement).
+ *   
  * Stocker les tags dans un fichier de configuration
- * 
- * File name can't contain \/:*?<>|
  * 
  */
 
@@ -59,15 +53,18 @@ namespace FileManager
             InitializeWatcher();
         }
 
+        #endregion
+
         #region Event
 
         private void button1_Click(object sender, EventArgs e)
         {
             PowerState state = PowerState.GetPowerState();
-
+            //Just a simple check to see if the computer is plugged or if there is more than 15% left, because...you know....it sucks power on my laptop :)
             if (state.ACLineStatus == ACLineStatus.Online || ((int)state.BatteryLifePercent) > 15)
             {
-                MyThread = new Thread(new ThreadStart(Thread_Construct_Tree));
+                MyThread = new Thread(() => Thread_Construct_Tree(Invoke(new get_Text(Get_Text), textBox2).ToString()));
+
                 MyThread.Start();
             }
         }
@@ -84,37 +81,31 @@ namespace FileManager
             }
         }
 
-        /*static*/
-        private void watcher_Renamed(object sender, RenamedEventArgs e)
+        private static void watcher_Renamed(object sender, RenamedEventArgs e)
         {
             ProcessEvent(sender, e);
         }
 
-        /*static*/
-        private void watcher_Changed(object sender, FileSystemEventArgs e)
+        private static void watcher_Changed(object sender, FileSystemEventArgs e)
         {
             ProcessEvent(sender, e);
         }
 
-        /*static*/
-        private void watcher_Deleted(object sender, FileSystemEventArgs e)
+        private static void watcher_Deleted(object sender, FileSystemEventArgs e)
         {
             ProcessEvent(sender, e);
         }
 
-        /*static*/
-        private void watcher_Created(object sender, FileSystemEventArgs e)
+        private static void watcher_Created(object sender, FileSystemEventArgs e)
         {
             ProcessEvent(sender, e);
         }
-
-        #endregion
 
         #endregion
 
         #region Thread
 
-        private void Thread_Construct_Tree()
+        private void Thread_Construct_Tree(string Dir)
         {
             if (Thread.CurrentThread.IsAlive)
             {
@@ -122,53 +113,58 @@ namespace FileManager
 
                 try
                 {
-                    XElement XResult = ProcessXml.GetDirectoryXml(Invoke(new get_Text(Get_Text), textBox2).ToString(), FileExtensions);
+                    XElement XResult = ProcessXml.GetDirectoryXml(Dir, FileExtensions);
 
-                    foreach (var year in XResult.Descendants("File")
-                                  .GroupBy(i => i.Attribute("MediaYear").Value)
-                                  .OrderBy(g => g.Key)
-                                  .Select(g => g.Key))
-                    {
-                        Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString());
-
-                        foreach (var artist in XResult.Descendants("File")
-                                  .Where(i => i.Attribute("MediaYear").Value == year.ToString())
-                                  .GroupBy(i => i.Attribute("MediaArtists").Value)
-                                  .OrderBy(g => g.Key)
-                                  .Select(g => g.Key))
-                        {
-                            Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()));
-
-                            foreach (var album in XResult.Descendants("File")
-                                  .Where(i => i.Attribute("MediaYear").Value == year.ToString()
-                                      && i.Attribute("MediaArtists").Value == artist.ToString())
-                                  .GroupBy(i => i.Attribute("MediaAlbum").Value)
-                                  .OrderBy(g => g.Key)
-                                  .Select(g => g.Key))
-                            {
-                                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()));
-
-                                foreach (var file in XResult.Descendants("File")
-                                  .Where(i => i.Attribute("MediaYear").Value == year.ToString()
-                                      && i.Attribute("MediaArtists").Value == artist.ToString()
-                                      && i.Attribute("MediaAlbum").Value == album.ToString()))
-                                {
-                                    Invoke(new set_Text(Append_Text), "Copying " + file.Attribute("FilePath").Value, textBox1);
-
-                                    System.IO.File.Copy(file.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()) + "\\" + file.Attribute("Name").Value), true);
-
-                                    FileInfo fileInfo = new FileInfo(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()) + "\\" + file.Attribute("Name").Value);
-
-                                    fileInfo.IsReadOnly = false;
-                                }
-                            }
-                        }
-                    }
+                    ProcessXmlElement(XResult);
                 }
                 catch (Exception e)
                 { Invoke(new set_Text(Append_Text), e.Message, textBox1); }
 
                 Invoke(new set_ButtonState(Set_ButtonState), true, button1);
+            }
+        }
+
+        private static void ProcessXmlElement(XElement XResult)
+        {
+            foreach (var year in XResult.Descendants("File")
+                                  .GroupBy(i => i.Attribute("MediaYear").Value)
+                                  .OrderBy(g => g.Key)
+                                  .Select(g => g.Key))
+            {
+                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString());
+
+                foreach (var artist in XResult.Descendants("File")
+                          .Where(i => i.Attribute("MediaYear").Value == year.ToString())
+                          .GroupBy(i => i.Attribute("MediaArtists").Value)
+                          .OrderBy(g => g.Key)
+                          .Select(g => g.Key))
+                {
+                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()));
+
+                    foreach (var album in XResult.Descendants("File")
+                          .Where(i => i.Attribute("MediaYear").Value == year.ToString()
+                              && i.Attribute("MediaArtists").Value == artist.ToString())
+                          .GroupBy(i => i.Attribute("MediaAlbum").Value)
+                          .OrderBy(g => g.Key)
+                          .Select(g => g.Key))
+                    {
+                        Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()));
+
+                        foreach (var file in XResult.Descendants("File")
+                          .Where(i => i.Attribute("MediaYear").Value == year.ToString()
+                              && i.Attribute("MediaArtists").Value == artist.ToString()
+                              && i.Attribute("MediaAlbum").Value == album.ToString()))
+                        {
+                            //Invoke(new set_Text(Append_Text), "Copying " + file.Attribute("FilePath").Value, textBox1);
+
+                            System.IO.File.Copy(file.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()) + "\\" + file.Attribute("Name").Value), true);
+
+                            FileInfo fileInfo = new FileInfo(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()) + "\\" + file.Attribute("Name").Value);
+
+                            fileInfo.IsReadOnly = false;
+                        }
+                    }
+                }
             }
         }
 
@@ -228,11 +224,22 @@ namespace FileManager
             watcher.EnableRaisingEvents = true;
         }
 
-        private void ProcessEvent(object source, FileSystemEventArgs e)
+        private static void ProcessEvent(object source, FileSystemEventArgs e)
         {
-            //to-do: implement a way to analyze the folder/file
+            XElement Xel = new XElement("Root");
 
-            Invoke(new set_Text(Append_Text), e.FullPath + " " + e.ChangeType, textBox1);
+            bool iSDirectory = Path.GetExtension(e.FullPath).Equals("");
+
+            if (iSDirectory)
+            {
+                Xel = ProcessXml.GetDirectoryXml(e.FullPath, FileExtensions);
+            }
+            else
+            {
+                ProcessXml.CollectXmlFileInfo(ref Xel, new FileInfo(e.FullPath));
+            }
+
+            ProcessXmlElement(Xel);
         }
 
         #endregion

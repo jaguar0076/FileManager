@@ -155,8 +155,6 @@ namespace FileManager
                               && i.Attribute("MediaArtists").Value == artist.ToString()
                               && i.Attribute("MediaAlbum").Value == album.ToString()))
                         {
-                            //Invoke(new set_Text(Append_Text), "Copying " + file.Attribute("FilePath").Value, textBox1);
-
                             System.IO.File.Copy(file.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()) + "\\" + file.Attribute("Name").Value), true);
 
                             FileInfo fileInfo = new FileInfo(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()) + "\\" + file.Attribute("Name").Value);
@@ -228,18 +226,14 @@ namespace FileManager
         {
             XElement Xel = new XElement("Root");
 
-            bool iSDirectory = Path.GetExtension(e.FullPath).Equals("");
+            string Ext = Path.GetExtension(e.FullPath);
 
-            if (iSDirectory)
-            {
-                Xel = ProcessXml.GetDirectoryXml(e.FullPath, FileExtensions);
-            }
-            else
+            if (!Ext.Equals("") && FileExtensions.Any(Ext.Equals))
             {
                 ProcessXml.CollectXmlFileInfo(ref Xel, new FileInfo(e.FullPath));
-            }
 
-            ProcessXmlElement(Xel);
+                ProcessXmlElement(Xel);
+            }
         }
 
         #endregion

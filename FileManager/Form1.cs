@@ -1,22 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
 
-/*
- * prochaines étape:
- * 
- * - ajouter un watcher sur les folder pour monitorer les changements, vérifier les changements détectés par le Watcher et 
- *   comparer le XML stocké et les folder ayant changés, ceci sera plus facile de stocker les modifications dans les folders
- *   en utilisant le XML et les nodes pour gérer les modifications dans l'arborescence (toutes les informations devront être
- *   sérialisées facilement).
- *   
- * Stocker les tags dans un fichier de configuration
- * 
- */
+//Add the style of music in the sort process
+//Implement a class (serializable) with the XML infos
+//Add a checksum for the comparaison
 
 namespace FileManager
 {
@@ -60,7 +51,7 @@ namespace FileManager
         private void button1_Click(object sender, EventArgs e)
         {
             PowerState state = PowerState.GetPowerState();
-            //Just a simple check to see if the computer is plugged or if there is more than 15% left, because...you know....it sucks power on my laptop :)
+            //Just a simple check to see if the computer is plugged or if there is more than 15% left, because...you know....it uses lotsa power on my laptop :)
             if (state.ACLineStatus == ACLineStatus.Online || ((int)state.BatteryLifePercent) > 15)
             {
                 MyThread = new Thread(() => Thread_Construct_Tree(Invoke(new get_Text(Get_Text), textBox2).ToString()));
@@ -81,22 +72,22 @@ namespace FileManager
             }
         }
 
-        private static void watcher_Renamed(object sender, RenamedEventArgs e)
+        private void watcher_Renamed(object sender, RenamedEventArgs e)
         {
             ProcessEvent(sender, e);
         }
 
-        private static void watcher_Changed(object sender, FileSystemEventArgs e)
+        private void watcher_Changed(object sender, FileSystemEventArgs e)
         {
             ProcessEvent(sender, e);
         }
 
-        private static void watcher_Deleted(object sender, FileSystemEventArgs e)
+        private void watcher_Deleted(object sender, FileSystemEventArgs e)
         {
             ProcessEvent(sender, e);
         }
 
-        private static void watcher_Created(object sender, FileSystemEventArgs e)
+        private void watcher_Created(object sender, FileSystemEventArgs e)
         {
             ProcessEvent(sender, e);
         }
@@ -124,7 +115,7 @@ namespace FileManager
             }
         }
 
-        private static void ProcessXmlElement(XElement XResult)
+        private void ProcessXmlElement(XElement XResult)
         {
             foreach (var year in XResult.Descendants("File")
                                   .GroupBy(i => i.Attribute("MediaYear").Value)
@@ -139,7 +130,7 @@ namespace FileManager
                           .OrderBy(g => g.Key)
                           .Select(g => g.Key))
                 {
-                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()));
+                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + Utils.Name_Cleanup(artist.ToString()));
 
                     foreach (var album in XResult.Descendants("File")
                           .Where(i => i.Attribute("MediaYear").Value == year.ToString()
@@ -148,16 +139,27 @@ namespace FileManager
                           .OrderBy(g => g.Key)
                           .Select(g => g.Key))
                     {
-                        Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()));
+                        Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + Utils.Name_Cleanup(artist.ToString()) + "\\" + Utils.Name_Cleanup(album.ToString()));
 
                         foreach (var file in XResult.Descendants("File")
                           .Where(i => i.Attribute("MediaYear").Value == year.ToString()
                               && i.Attribute("MediaArtists").Value == artist.ToString()
                               && i.Attribute("MediaAlbum").Value == album.ToString()))
                         {
-                            System.IO.File.Copy(file.Attribute("FilePath").Value, (Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()) + "\\" + file.Attribute("Name").Value), true);
+                            string NewFile = Directory.GetCurrentDirectory() + "\\" +
+                                             year.ToString() + "\\" +
+                                             Utils.Name_Cleanup(artist.ToString()) + "\\" +
+                                             Utils.Name_Cleanup(album.ToString()) + "\\" +
+                                             file.Attribute("MediaTrack").Value +
+                                             " - " +
+                                             Utils.Name_Cleanup(file.Attribute("MediaTitle").Value +
+                                             file.Attribute("MediaExtension").Value);
 
-                            FileInfo fileInfo = new FileInfo(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + NameCleanup(artist.ToString()) + "\\" + NameCleanup(album.ToString()) + "\\" + file.Attribute("Name").Value);
+                            Invoke(new set_Text(Append_Text), "Copying to " + NewFile, textBox1);
+
+                            System.IO.File.Copy(file.Attribute("FilePath").Value, NewFile, true);
+
+                            FileInfo fileInfo = new FileInfo(NewFile);
 
                             fileInfo.IsReadOnly = false;
                         }
@@ -186,11 +188,6 @@ namespace FileManager
         private static void Set_ButtonState(bool state, Object o)
         {
             Utils.CheckSetPropertyValue(o, "Enabled", state);
-        }
-
-        private static string NameCleanup(string FileName)
-        {
-            return Regex.Replace(FileName, @"[\/?:*""><|]+", "-", RegexOptions.Compiled);
         }
 
         #endregion
@@ -222,7 +219,7 @@ namespace FileManager
             watcher.EnableRaisingEvents = true;
         }
 
-        private static void ProcessEvent(object source, FileSystemEventArgs e)
+        private void ProcessEvent(object source, FileSystemEventArgs e)
         {
             XElement Xel = new XElement("Root");
 

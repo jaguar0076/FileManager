@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace FileManager
@@ -24,32 +24,37 @@ namespace FileManager
 
         #region Process Xml
 
+        //interesting to use Reflexion here to define a list of dynamics paramaters
         internal static void CollectXmlFileInfo(ref XElement Xnode, FileInfo file)
         {
             TagLib.File filetag = TagLib.File.Create(file.FullName);
 
-            Xnode.Add(new XElement("File",
-                     new XAttribute("Name", file.Name),
-                     new XAttribute("FilePath", file.FullName),
-                     new XAttribute("MediaTitle", Clean_String(filetag.Tag.Title)),
-                     new XAttribute("MediaAlbum", Clean_String(filetag.Tag.Album ?? "Undefined")),
-                     new XAttribute("MediaYear", filetag.Tag.Year),
-                     new XAttribute("MediaArtists", Clean_String(string.Join(",", filetag.Tag.Performers ?? filetag.Tag.AlbumArtists) ?? "Undefined"))));
+            Xnode.Add(new XElement("File", //File node
+                //new XAttribute("Name", file.Name), //file name
+                     new XAttribute("FilePath", file.FullName), //file path including the file name
+                     new XAttribute("MediaTitle", Utils.Clean_String(filetag.Tag.Title)),//the title of the song
+                     new XAttribute("MediaExtension", file.Extension), // the extension of the file
+                     new XAttribute("MediaTrack", filetag.Tag.Track != 0 ? filetag.Tag.Track.ToString("D2") : Regex.Match(file.Name, @"\d+").Value.PadLeft(2, '0')), //the track number
+                     new XAttribute("MediaAlbum", Utils.Clean_String(filetag.Tag.Album ?? "Undefined")), // the album of the song
+                     new XAttribute("MediaYear", filetag.Tag.Year != 0 ? filetag.Tag.Year.ToString() : "Undefined"), // the year of the song
+                     new XAttribute("MediaArtists", Utils.Clean_String(string.Join(",", filetag.Tag.Performers ?? filetag.Tag.AlbumArtists) ?? "Undefined")))); // the artists of the song
         }
 
-        internal static void ComputeFileInfo(FileInfo[] Flist, ref XElement Xnode, List<FileInfo> FileEx, string[] FileExtensions)
+        internal static void ComputeFileInfo(FileInfo[] Flist, ref XElement Xnode, List<FileInfo> FileEx, List<FileInfo> FileOk, string[] FileExtensions)
         {
-            foreach (var file in Flist.Except(FileEx))
+            foreach (var file in Flist.Except(FileEx).Except(FileOk)) //Exclude bad files and already treated ones
             {
                 try
                 {
                     CollectXmlFileInfo(ref Xnode, file);
+
+                    FileOk.Add(file);
                 }
                 catch
-                {//Maybe it would be interesting to store all the corrects files too and not only the bad ones to avoid computing all the XML again
+                {
                     FileEx.Add(file);
 
-                    ComputeFileInfo(Flist, ref Xnode, FileEx, FileExtensions);
+                    ComputeFileInfo(Flist, ref Xnode, FileEx, FileOk, FileExtensions);
                 }
             }
         }
@@ -59,13 +64,16 @@ namespace FileManager
         {
             DirectoryInfo Dir = new DirectoryInfo(dir);
 
-            List<FileInfo> FileEx = new List<FileInfo>();
+            List<FileInfo> BadFiles = new List<FileInfo>();
+
+            List<FileInfo> OkFiles = new List<FileInfo>();
 
             var info = new XElement("Root");
 
             ComputeFileInfo(Dir.EnumerateFiles().Where(f => FileExtensions.Contains(f.Extension.ToLower())).ToArray(),
                             ref info,
-                            FileEx,
+                            BadFiles,
+                            OkFiles,
                             FileExtensions);
 
             foreach (var subDir in Dir.EnumerateDirectories())
@@ -74,17 +82,6 @@ namespace FileManager
             }
 
             return info;
-        }
-
-        #endregion
-
-        #region String Cleanup
-
-        internal static string Clean_String(string txt)
-        {
-            StringBuilder sb = new StringBuilder(txt);
-
-            return sb.Replace("\0", string.Empty).ToString();
         }
 
         #endregion

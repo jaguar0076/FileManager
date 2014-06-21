@@ -1,13 +1,14 @@
 ﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FileManager
 {
     static class Utils
     {
         #region Variables
-        //Willbe stored in config file
+        //Will be stored in a config file
         private static string[] ExcludedString = { "\\", "/", "?", ":", "*", "\"", ">", "<", "|" };
 
         #endregion
@@ -121,7 +122,7 @@ namespace FileManager
 
         #endregion
 
-        #region String Cleanup utilities
+        #region String Formatting utilities
 
         internal static string Clean_String(string txt)
         {
@@ -143,6 +144,11 @@ namespace FileManager
             //return Regex.Replace(FileName, @"[\/?:*""><|]+", "-", RegexOptions.Compiled);
 
             return sb.ToString();
+        }
+
+        internal static string FormatStringBasedOnRegex(string FileName, string StringMatch, char StringFormat)
+        {
+            return Regex.Match(FileName, StringMatch).Value.PadLeft(2, StringFormat);
         }
 
         #endregion

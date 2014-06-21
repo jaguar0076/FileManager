@@ -44,6 +44,11 @@ namespace FileManager
             InitializeWatcher();
         }
 
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            folderBrowserDialog1.SelectedPath = @"D:\Ma musique";
+        }
+
         #endregion
 
         #region Event
@@ -117,7 +122,7 @@ namespace FileManager
 
         private void ProcessXmlElement(XElement XResult)
         {
-            foreach (var year in XResult.Descendants("File")
+            /*foreach (var year in XResult.Descendants("File")
                                   .GroupBy(i => i.Attribute("MediaYear").Value)
                                   .OrderBy(g => g.Key)
                                   .Select(g => g.Key))
@@ -157,15 +162,24 @@ namespace FileManager
 
                             Invoke(new set_Text(Append_Text), "Copying to " + NewFile, textBox1);
 
-                            System.IO.File.Copy(file.Attribute("FilePath").Value, NewFile, true);
+                            Invoke(new set_Text(Append_Text), ProcessXml.XFInfos.Count.ToString(), textBox1);
 
-                            FileInfo fileInfo = new FileInfo(NewFile);
+                            //System.IO.File.Copy(file.Attribute("FilePath").Value, NewFile, true);
 
-                            fileInfo.IsReadOnly = false;
+                            //FileInfo fileInfo = new FileInfo(NewFile);
+
+                            //fileInfo.IsReadOnly = false;
                         }
                     }
                 }
+            }*/
+
+            for (int i = 0; i < ProcessXml.XFInfos.Count; i++)
+            {
+                Invoke(new set_Text(Append_Text), ProcessXml.XFInfos[i].FilePath, textBox1);
             }
+
+            // TODO: Implement foreach with le XmlFileInfos collection
         }
 
         #endregion

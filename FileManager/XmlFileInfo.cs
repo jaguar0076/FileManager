@@ -1,8 +1,11 @@
-﻿using System.Xml.Serialization;
+﻿using System;
+using System.Xml.Serialization;
 
 namespace FileManager
 {
-    class XmlFile
+    [Serializable]
+    [XmlRoot("File")]
+    public class XmlFileInfo
     {
         [XmlElement(DataType = "string")]
         public string File { get; set; }

@@ -5,9 +5,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
 
-//Add the style of music in the sort process
-//Implement a class (serializable) with the XML infos
-//Add a checksum for the comparaison
+//Add the style of music in the sorting process
 
 namespace FileManager
 {
@@ -109,9 +107,7 @@ namespace FileManager
 
                 try
                 {
-                    XElement XResult = ProcessXml.GetDirectoryXml(Dir, FileExtensions);
-
-                    ProcessXmlElement(XResult);
+                    ProcessXmlElement(ProcessXml.GetDirectoryXml(Dir, FileExtensions));
                 }
                 catch (Exception e)
                 { Invoke(new set_Text(Append_Text), e.Message, textBox1); }
@@ -122,64 +118,59 @@ namespace FileManager
 
         private void ProcessXmlElement(XElement XResult)
         {
-            /*foreach (var year in XResult.Descendants("File")
-                                  .GroupBy(i => i.Attribute("MediaYear").Value)
+            //Interesting to see if we can extract the years, Artists, Albums before
+
+            string CurrentDirectory = Directory.GetCurrentDirectory();
+
+            foreach (var CurrMediaYear in ProcessXml.XFInfoList
+                                   .GroupBy(i => i.MediaYear)
                                   .OrderBy(g => g.Key)
                                   .Select(g => g.Key))
             {
-                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString());
+                Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear);
 
-                foreach (var artist in XResult.Descendants("File")
-                          .Where(i => i.Attribute("MediaYear").Value == year.ToString())
-                          .GroupBy(i => i.Attribute("MediaArtists").Value)
+                foreach (var CurrMediaArtists in ProcessXml.XFInfoList
+                          .Where(i => i.MediaYear == CurrMediaYear)
+                          .GroupBy(i => i.MediaArtists)
                           .OrderBy(g => g.Key)
                           .Select(g => g.Key))
                 {
-                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + Utils.Name_Cleanup(artist.ToString()));
+                    Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear + "\\" + Utils.Name_Cleanup(CurrMediaArtists));
 
-                    foreach (var album in XResult.Descendants("File")
-                          .Where(i => i.Attribute("MediaYear").Value == year.ToString()
-                              && i.Attribute("MediaArtists").Value == artist.ToString())
-                          .GroupBy(i => i.Attribute("MediaAlbum").Value)
+                    foreach (var CurrAlbum in ProcessXml.XFInfoList
+                          .Where(i => i.MediaYear == CurrMediaYear
+                              && i.MediaArtists == CurrMediaArtists)
+                          .GroupBy(i => i.MediaAlbum)
                           .OrderBy(g => g.Key)
                           .Select(g => g.Key))
                     {
-                        Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\" + year.ToString() + "\\" + Utils.Name_Cleanup(artist.ToString()) + "\\" + Utils.Name_Cleanup(album.ToString()));
+                        Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear + "\\" + Utils.Name_Cleanup(CurrMediaArtists) + "\\" + Utils.Name_Cleanup(CurrAlbum));
 
-                        foreach (var file in XResult.Descendants("File")
-                          .Where(i => i.Attribute("MediaYear").Value == year.ToString()
-                              && i.Attribute("MediaArtists").Value == artist.ToString()
-                              && i.Attribute("MediaAlbum").Value == album.ToString()))
+                        foreach (var CurrFile in ProcessXml.XFInfoList
+                          .Where(i => i.MediaYear == CurrMediaYear
+                              && i.MediaArtists == CurrMediaArtists
+                              && i.MediaAlbum == CurrAlbum))
                         {
-                            string NewFile = Directory.GetCurrentDirectory() + "\\" +
-                                             year.ToString() + "\\" +
-                                             Utils.Name_Cleanup(artist.ToString()) + "\\" +
-                                             Utils.Name_Cleanup(album.ToString()) + "\\" +
-                                             file.Attribute("MediaTrack").Value +
+                            string NewFile = CurrentDirectory + "\\" +
+                                             CurrMediaYear + "\\" +
+                                             Utils.Name_Cleanup(CurrMediaArtists) + "\\" +
+                                             Utils.Name_Cleanup(CurrAlbum) + "\\" +
+                                             CurrFile.MediaTrack +
                                              " - " +
-                                             Utils.Name_Cleanup(file.Attribute("MediaTitle").Value +
-                                             file.Attribute("MediaExtension").Value);
+                                             Utils.Name_Cleanup(CurrFile.MediaTitle) +
+                                             CurrFile.MediaExtension;
 
                             Invoke(new set_Text(Append_Text), "Copying to " + NewFile, textBox1);
 
-                            Invoke(new set_Text(Append_Text), ProcessXml.XFInfos.Count.ToString(), textBox1);
+                            System.IO.File.Copy(CurrFile.FilePath, NewFile, true);
 
-                            //System.IO.File.Copy(file.Attribute("FilePath").Value, NewFile, true);
+                            FileInfo fileInfo = new FileInfo(NewFile);
 
-                            //FileInfo fileInfo = new FileInfo(NewFile);
-
-                            //fileInfo.IsReadOnly = false;
+                            fileInfo.IsReadOnly = false;
                         }
                     }
                 }
-            }*/
-
-            for (int i = 0; i < ProcessXml.XFInfos.Count; i++)
-            {
-                Invoke(new set_Text(Append_Text), ProcessXml.XFInfos[i].FilePath, textBox1);
             }
-
-            // TODO: Implement foreach with le XmlFileInfos collection
         }
 
         #endregion

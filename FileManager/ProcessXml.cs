@@ -12,13 +12,12 @@ namespace FileManager
     {
         #region Variables
 
-        public static XmlFileInfos XFInfos = new XmlFileInfos();
+        public static List<XmlFileInfo> XFInfoList = new List<XmlFileInfo>();  
 
         #endregion
 
         #region Calculate folder size
 
-        //Calculate folder size
         internal static long DirectorySize(DirectoryInfo dInfo, string[] FileExtensions)
         {
             long totalSize = dInfo.EnumerateFiles().Where(file => FileExtensions.Contains(file.Extension.ToLower())).Sum(file => file.Length);
@@ -45,13 +44,14 @@ namespace FileManager
                      new XAttribute("MediaAlbum", Utils.Clean_String(filetag.Tag.Album ?? "Undefined")), // the album of the song
                      new XAttribute("MediaYear", filetag.Tag.Year != 0 ? filetag.Tag.Year.ToString() : "Undefined"), // the year of the song
                      new XAttribute("MediaArtists", Utils.Clean_String(string.Join(",", filetag.Tag.Performers ?? filetag.Tag.AlbumArtists) ?? "Undefined")))); // the artists of the song
-
-            XFInfos.Add(FromXElement(XEl));
+            
+            //add a thread to process the Serialization
+            XFInfoList.Add(FromXElement(XEl));
 
             Xnode.Add(XEl);
         }
 
-        //Serialization to an XmlFIleInfo object based on a XElement
+        //Serialization to a XmlFIleInfo object based on a XElement
         internal static XmlFileInfo FromXElement(XElement xElement)
         {
             using (var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(xElement.ToString())))
@@ -61,6 +61,7 @@ namespace FileManager
             }
         }
 
+        //Gather file informations and exclude corrupted files
         internal static void ComputeFileInfo(FileInfo[] Flist, ref XElement Xnode, List<FileInfo> FileEx, List<FileInfo> AlreadyProcessedFiles, string[] FileExtensions)
         {
             foreach (var file in Flist.Except(AlreadyProcessedFiles).Except(FileEx)) //Exclude already treated ones and bad files

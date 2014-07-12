@@ -13,9 +13,9 @@ namespace FileManager
     {
         #region Variables
 
-        private Thread MyThread;
-
         private static string[] FileExtensions = { ".mp3", ".wma", ".m4a", ".flac", ".ogg", ".alac", ".aiff" };
+
+        private Thread MyThread;
 
         private FileSystemWatcher watcher;
 
@@ -28,8 +28,6 @@ namespace FileManager
         private delegate string get_Text(Object o);
 
         private delegate void set_ButtonState(bool val, Object o);
-
-        private delegate void Append_Textbox(string txt);
 
         #endregion
 
@@ -207,7 +205,7 @@ namespace FileManager
 
             watcher.Path = _path;
 
-            watcher.NotifyFilter = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastWrite;
+            watcher.NotifyFilter = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite;
 
             watcher.Filter = "*.*";
 

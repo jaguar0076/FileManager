@@ -1,14 +1,15 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace FileManager
 {
-    static class Utils
+    internal static class Utils
     {
         #region Variables
-        //Will be stored in a config file
+        //Should be stored in a config file
         private static string[] ExcludedString = { "\\", "/", "?", ":", "*", "\"", ">", "<", "|" };
 
         #endregion
@@ -153,15 +154,46 @@ namespace FileManager
 
         #endregion
 
+        #region Logging
+
+        internal static void SaveLogFile(object method, Exception exception)
+        {
+            string location = Directory.GetCurrentDirectory() + "\\";
+
+            try
+            {
+                //Opens a new file stream which allows asynchronous reading and writing
+                using (StreamWriter sw = new StreamWriter(new FileStream(location + @"log.txt", FileMode.Append, FileAccess.Write, FileShare.ReadWrite)))
+                {
+                    //Writes the method name with the exception and writes the exception underneath
+                    sw.WriteLine(String.Format("{0} ({1}) - Method: {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), method.ToString()));
+                    sw.WriteLine(exception.ToString()); sw.WriteLine("");
+                }
+            }
+            catch (IOException)
+            {
+                if (!File.Exists(location + @"log.txt"))
+                {
+                    File.Create(location + @"log.txt");
+
+                    SaveLogFile(method, exception);
+                }
+            }
+
+            //Utils.SaveLogFile(MethodBase.GetCurrentMethod(), new Exception("MusicBrainzTrackId: " + filetag.Tag.AmazonId));
+        }
+
+        #endregion
+
         #region MD5Hash
 
-        private static byte[] ComputeMD5Hash(string FilePath)
+        internal static string ComputeMD5Hash(string FilePath)
         {
             using (var md5 = MD5.Create())
             {
                 using (var stream = File.OpenRead(FilePath))
                 {
-                    return md5.ComputeHash(stream);
+                    return BitConverter.ToString(md5.ComputeHash(stream));
                 }
             }
         }

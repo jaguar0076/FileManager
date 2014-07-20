@@ -30,5 +30,14 @@ namespace FileManager
 
         [XmlAttribute(DataType = "string")]
         public string MediaArtists { get; set; }
+
+        [XmlAttribute(DataType = "string")]
+        public string MediaGenres { get; set; }
+
+        //[XmlAttribute(DataType = "string")]
+        //public string MusicBrainzTrackId { get; set; }
+
+        [XmlAttribute(DataType = "string")]
+        public string MD5Hash { get; set; }
     }
 }

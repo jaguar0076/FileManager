@@ -115,8 +115,6 @@ namespace FileManager
             return info;
         }
 
-        //internal static void ThreadProcessSerialization();
-
         #endregion
     }
 }

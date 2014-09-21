@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using System.Data.SQLite;
 
 //Add the style of music in the sorting process
 
@@ -120,6 +121,10 @@ namespace FileManager
 
             string CurrentDirectory = Directory.GetCurrentDirectory();
 
+            //SQLiteConnection m_dbConnection;
+            //m_dbConnection = new SQLiteConnection("Data Source=MyDatabase.sqlite;Version=3;");
+            //m_dbConnection.Open();
+
             foreach (var CurrMediaYear in ProcessXml.XFInfoList
                                    .GroupBy(i => i.MediaYear)
                                   .OrderBy(g => g.Key)
@@ -147,7 +152,8 @@ namespace FileManager
                         foreach (var CurrFile in ProcessXml.XFInfoList
                           .Where(i => i.MediaYear == CurrMediaYear
                               && i.MediaArtists == CurrMediaArtists
-                              && i.MediaAlbum == CurrAlbum))
+                              && i.MediaAlbum == CurrAlbum)
+                              .OrderBy(g => g.MediaTrack))
                         {
                             string NewFile = CurrentDirectory + "\\" +
                                              CurrMediaYear + "\\" +
@@ -158,7 +164,7 @@ namespace FileManager
                                              Utils.Name_Cleanup(CurrFile.MediaTitle) +
                                              CurrFile.MediaExtension;
 
-                            Invoke(new set_Text(Append_Text), "Copying to " + NewFile, textBox1);
+                            Invoke(new set_Text(Append_Text), "Copying to " + NewFile + " (" + CurrFile.MD5Hash + ")", textBox1);
 
                             System.IO.File.Copy(CurrFile.FilePath, NewFile, true);
 

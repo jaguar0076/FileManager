@@ -167,9 +167,9 @@ namespace FileManager
                 using (StreamWriter sw = new StreamWriter(new FileStream(location, FileMode.Append, FileAccess.Write, FileShare.ReadWrite)))
                 {
                     //Writes the method name with the exception and writes the exception underneath
-                    sw.WriteLine(String.Format("{0} ({1}) - Method: {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), method.ToString()));
+                    sw.WriteLine(String.Format("{0} ({1}) - Method: {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToLongTimeString(), method.ToString()));
                     sw.WriteLine(exception.ToString());
-                    sw.WriteLine("");
+                    sw.Write(Environment.NewLine);
                 }
             }
             catch (IOException)
@@ -187,7 +187,7 @@ namespace FileManager
         #endregion
 
         #region MD5Hash
-
+        //Be aware of MD5 collision
         internal static string ComputeMD5Hash(string FilePath)
         {
             using (var md5 = MD5.Create())

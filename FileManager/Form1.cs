@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
-using System.Data.SQLite;
 
 //Add the style of music in the sorting process
 
@@ -38,7 +38,7 @@ namespace FileManager
         {
             InitializeComponent();
 
-            //InitializeWatcher();
+            InitializeWatcher();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -60,6 +60,8 @@ namespace FileManager
 
                 MyThread.Start();
             }
+            else
+            { Invoke(new set_Text(Append_Text), "Need powaaa maaaan!!", textBox1); }
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -109,7 +111,7 @@ namespace FileManager
                     ProcessXmlElement(ProcessXml.GetDirectoryXml(Dir, FileExtensions));
                 }
                 catch (Exception e)
-                { Invoke(new set_Text(Append_Text), e.Message, textBox1); }
+                { Utils.SaveLogFile(MethodBase.GetCurrentMethod(), e); }
 
                 Invoke(new set_ButtonState(Set_ButtonState), true, button1);
             }
@@ -119,11 +121,13 @@ namespace FileManager
         {
             //Interesting to see if we can extract the years, Artists, Albums before
 
-            string CurrentDirectory = Directory.GetCurrentDirectory();
+            //When we run the analysis more than once the results seems dupplicated
 
-            //SQLiteConnection m_dbConnection;
-            //m_dbConnection = new SQLiteConnection("Data Source=MyDatabase.sqlite;Version=3;");
-            //m_dbConnection.Open();
+            DbUtils.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS File (file_id INTEGER PRIMARY KEY AUTOINCREMENT, path VARCHAR(200), title VARCHAR(100), extension VARCHAR(4), track VARCHAR(4), album VARCHAR(100), year VARCHAR(4), artists VARCHAR(200), genres VARCHAR(50), hash VARCHAR(200) UNIQUE)");
+
+            DbUtils.ExecuteNonQuery("CREATE INDEX IF NOT EXISTS idx_File1 ON File(hash)");
+
+            string CurrentDirectory = Directory.GetCurrentDirectory();
 
             foreach (var CurrMediaYear in ProcessXml.XFInfoList
                                    .GroupBy(i => i.MediaYear)
@@ -164,7 +168,12 @@ namespace FileManager
                                              Utils.Name_Cleanup(CurrFile.MediaTitle) +
                                              CurrFile.MediaExtension;
 
-                            Invoke(new set_Text(Append_Text), "Copying to " + NewFile + " (" + CurrFile.MD5Hash + ")", textBox1);
+                            DbUtils.ExecuteNonQuery("INSERT INTO File(path, title, extension, track, album, year, artists, genres, hash) values (?,?,?,?,?,?,?,?,?)",
+                                                    CurrFile.FilePath, CurrFile.MediaTitle, CurrFile.MediaExtension, CurrFile.MediaTrack, CurrFile.MediaAlbum, CurrFile.MediaYear, CurrFile.MediaArtists, CurrFile.MediaGenres, CurrFile.MD5Hash);
+
+                            Invoke(new set_Text(Append_Text), "Copying to " + NewFile + " (" + CurrFile.MediaGenres + ")", textBox1);
+
+                            //Exception occurs when a file is renamed
 
                             System.IO.File.Copy(CurrFile.FilePath, NewFile, true);
 
@@ -175,6 +184,8 @@ namespace FileManager
                     }
                 }
             }
+
+            DbUtils.CloseConnection();
         }
 
         #endregion

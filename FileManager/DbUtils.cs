@@ -9,13 +9,13 @@ namespace FileManager
     {
         #region Variables
 
-        private static SQLiteConnection audio_dbConnection = null;
+        private static SQLiteConnection AudioDbConnection = null;
 
-        private static readonly object myLock = new object();
+        private static readonly object MyLock = new object();
         //to store in config file
-        private static readonly string dbString = "audio_db.sqlite";
+        private static readonly string DbString = "audio_db.sqlite";
 
-        private static readonly string dbConnection = "Data Source={0};Version=3;";
+        private static readonly string DbConnection = "Data Source={0};Version=3;";
 
         //pool/array of command
 
@@ -25,54 +25,54 @@ namespace FileManager
 
         public static SQLiteConnection GetConnection()
         {
-            lock (myLock)
+            lock (MyLock)
             {
-                if (audio_dbConnection == null)
+                if (AudioDbConnection == null)
                 {
-                    Check_Create_DB(Directory.GetCurrentDirectory(), dbString);
+                    Check_Create_DB(Directory.GetCurrentDirectory(), DbString);
 
                     try
                     {
-                        audio_dbConnection = new SQLiteConnection(String.Format(dbConnection, dbString));
+                        AudioDbConnection = new SQLiteConnection(String.Format(DbConnection, DbString));
                     }
                     catch (Exception e)
                     { Utils.SaveLogFile(MethodBase.GetCurrentMethod(), e); }
                 }
 
-                openConnection();
+                OpenConnection();
 
-                return audio_dbConnection;
+                return AudioDbConnection;
             }
         }
 
-        private static void Check_Create_DB(string DbPath, string DbName)
+        private static void Check_Create_DB(string dbPath, string dbName)
         {
-            string FullPath = DbPath + "\\" + DbName;
+            string FullPath = dbPath + "\\" + dbName;
 
             if (!File.Exists(FullPath))
             {
                 try
                 {
-                    SQLiteConnection.CreateFile(DbName);
+                    SQLiteConnection.CreateFile(dbName);
                 }
                 catch (Exception e)
                 { Utils.SaveLogFile(MethodBase.GetCurrentMethod(), e); }
             }
         }
 
-        private static void openConnection()
+        private static void OpenConnection()
         {
-            if (audio_dbConnection != null && audio_dbConnection.State != System.Data.ConnectionState.Open)
+            if (AudioDbConnection != null && AudioDbConnection.State != System.Data.ConnectionState.Open)
             {
-                audio_dbConnection.Open();
+                AudioDbConnection.Open();
             }
         }
 
         public static void CloseConnection()
         {
-            if (audio_dbConnection != null && audio_dbConnection.State != System.Data.ConnectionState.Closed)
+            if (AudioDbConnection != null && AudioDbConnection.State != System.Data.ConnectionState.Closed)
             {
-                audio_dbConnection.Close();
+                AudioDbConnection.Close();
             }
         }
 
@@ -80,13 +80,13 @@ namespace FileManager
 
         #region Execute query
 
-        private static void PrepareStatement(ref SQLiteCommand Command, params object[] args)
+        private static void PrepareStatement(ref SQLiteCommand command, params object[] args)
         {
             foreach (var arg in args)
             {
-                SQLiteParameter Field = Command.CreateParameter();
+                SQLiteParameter Field = command.CreateParameter();
 
-                Command.Parameters.Add(Field);
+                command.Parameters.Add(Field);
 
                 Field.Value = arg;
             }

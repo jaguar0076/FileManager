@@ -18,17 +18,17 @@ namespace FileManager
 
         private Thread MyThread;
 
-        private FileSystemWatcher watcher;
+        private FileSystemWatcher Watcher;
 
         #endregion
 
         #region Delegates
 
-        private delegate void set_Text(string txt, Object o);
+        private delegate void SetText(string txt, Object o);
 
-        private delegate string get_Text(Object o);
+        private delegate string GetText(Object o);
 
-        private delegate void set_ButtonState(bool val, Object o);
+        private delegate void SetButtonState(bool val, Object o);
 
         #endregion
 
@@ -56,12 +56,12 @@ namespace FileManager
             //Just a simple check to see if the computer is plugged or if there is more than 15% left, because...you know....it uses lotsa power on my laptop :)
             if (state.ACLineStatus == ACLineStatus.Online || ((int)state.BatteryLifePercent) > 15)
             {
-                MyThread = new Thread(() => Thread_Construct_Tree(Invoke(new get_Text(Get_Text), textBox2).ToString()));
+                MyThread = new Thread(() => ThreadConstructTree(Invoke(new GetText(Get_Text), textBox2).ToString()));
 
                 MyThread.Start();
             }
             else
-            { Invoke(new set_Text(Append_Text), "Need powaaa maaaan!!", textBox1); }
+            { Invoke(new SetText(AppendText), "Need powaaa maaaan!!", textBox1); }
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -100,24 +100,24 @@ namespace FileManager
 
         #region Thread
 
-        private void Thread_Construct_Tree(string Dir)
+        private void ThreadConstructTree(string dir)
         {
             if (Thread.CurrentThread.IsAlive)
             {
-                Invoke(new set_ButtonState(Set_ButtonState), false, button1);
+                Invoke(new SetButtonState(Set_ButtonState), false, button1);
 
                 try
                 {
-                    ProcessXmlElement(ProcessXml.GetDirectoryXml(Dir, FileExtensions));
+                    ProcessXmlElement(ProcessXml.GetDirectoryXml(dir, FileExtensions));
                 }
                 catch (Exception e)
                 { Utils.SaveLogFile(MethodBase.GetCurrentMethod(), e); }
 
-                Invoke(new set_ButtonState(Set_ButtonState), true, button1);
+                Invoke(new SetButtonState(Set_ButtonState), true, button1);
             }
         }
 
-        private void ProcessXmlElement(XElement XResult)
+        private void ProcessXmlElement(XElement xResult)
         {
             //Interesting to see if we can extract the years, Artists, Albums before
 
@@ -125,7 +125,9 @@ namespace FileManager
 
             DbUtils.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS File (file_id INTEGER PRIMARY KEY AUTOINCREMENT, path VARCHAR(200), title VARCHAR(100), extension VARCHAR(4), track VARCHAR(4), album VARCHAR(100), year VARCHAR(4), artists VARCHAR(200), genres VARCHAR(50), hash VARCHAR(200) UNIQUE)");
 
-            DbUtils.ExecuteNonQuery("CREATE INDEX IF NOT EXISTS idx_File1 ON File(hash)");
+            DbUtils.ExecuteNonQuery("CREATE INDEX IF NOT EXISTS idx1_File_hash ON File(hash)");
+
+            DbUtils.ExecuteNonQuery("CREATE INDEX IF NOT EXISTS idx2_File_year ON File(year)");
 
             string CurrentDirectory = Directory.GetCurrentDirectory();
 
@@ -142,7 +144,7 @@ namespace FileManager
                           .OrderBy(g => g.Key)
                           .Select(g => g.Key))
                 {
-                    Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear + "\\" + Utils.Name_Cleanup(CurrMediaArtists));
+                    Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear + "\\" + Utils.NameCleanup(CurrMediaArtists));
 
                     foreach (var CurrAlbum in ProcessXml.XFInfoList
                           .Where(i => i.MediaYear == CurrMediaYear
@@ -151,7 +153,7 @@ namespace FileManager
                           .OrderBy(g => g.Key)
                           .Select(g => g.Key))
                     {
-                        Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear + "\\" + Utils.Name_Cleanup(CurrMediaArtists) + "\\" + Utils.Name_Cleanup(CurrAlbum));
+                        Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear + "\\" + Utils.NameCleanup(CurrMediaArtists) + "\\" + Utils.NameCleanup(CurrAlbum));
 
                         foreach (var CurrFile in ProcessXml.XFInfoList
                           .Where(i => i.MediaYear == CurrMediaYear
@@ -161,17 +163,17 @@ namespace FileManager
                         {
                             string NewFile = CurrentDirectory + "\\" +
                                              CurrMediaYear + "\\" +
-                                             Utils.Name_Cleanup(CurrMediaArtists) + "\\" +
-                                             Utils.Name_Cleanup(CurrAlbum) + "\\" +
+                                             Utils.NameCleanup(CurrMediaArtists) + "\\" +
+                                             Utils.NameCleanup(CurrAlbum) + "\\" +
                                              CurrFile.MediaTrack +
                                              " - " +
-                                             Utils.Name_Cleanup(CurrFile.MediaTitle) +
+                                             Utils.NameCleanup(CurrFile.MediaTitle) +
                                              CurrFile.MediaExtension;
 
                             DbUtils.ExecuteNonQuery("INSERT INTO File(path, title, extension, track, album, year, artists, genres, hash) values (?,?,?,?,?,?,?,?,?)",
                                                     CurrFile.FilePath, CurrFile.MediaTitle, CurrFile.MediaExtension, CurrFile.MediaTrack, CurrFile.MediaAlbum, CurrFile.MediaYear, CurrFile.MediaArtists, CurrFile.MediaGenres, CurrFile.MD5Hash);
 
-                            Invoke(new set_Text(Append_Text), "Copying to " + NewFile + " (" + CurrFile.MediaGenres + ")", textBox1);
+                            Invoke(new SetText(AppendText), "Copying to " + NewFile + " (" + CurrFile.MediaGenres + ")", textBox1);
 
                             //Exception occurs when a file is renamed
 
@@ -192,7 +194,7 @@ namespace FileManager
 
         #region Misc Functions
 
-        private static void Append_Text(string msg, Object o)
+        private static void AppendText(string msg, Object o)
         {
             if (msg != String.Empty && msg != null)
             {
@@ -216,27 +218,27 @@ namespace FileManager
 
         private void InitializeWatcher()
         {
-            watcher = new FileSystemWatcher();
+            Watcher = new FileSystemWatcher();
 
             string _path = "D:\\Ma musique\\";
 
-            watcher.Path = _path;
+            Watcher.Path = _path;
 
-            watcher.NotifyFilter = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite;
+            Watcher.NotifyFilter = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite;
 
-            watcher.Filter = "*.*";
+            Watcher.Filter = "*.*";
 
-            watcher.IncludeSubdirectories = true;
+            Watcher.IncludeSubdirectories = true;
 
-            watcher.Created += new FileSystemEventHandler(watcher_Created);
+            Watcher.Created += new FileSystemEventHandler(watcher_Created);
 
-            watcher.Deleted += new FileSystemEventHandler(watcher_Deleted);
+            Watcher.Deleted += new FileSystemEventHandler(watcher_Deleted);
 
-            watcher.Changed += new FileSystemEventHandler(watcher_Changed);
+            Watcher.Changed += new FileSystemEventHandler(watcher_Changed);
 
-            watcher.Renamed += new RenamedEventHandler(watcher_Renamed);
+            Watcher.Renamed += new RenamedEventHandler(watcher_Renamed);
 
-            watcher.EnableRaisingEvents = true;
+            Watcher.EnableRaisingEvents = true;
         }
 
         private void ProcessEvent(object source, FileSystemEventArgs e)

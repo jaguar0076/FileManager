@@ -126,17 +126,17 @@ namespace FileManager
 
         #region String Formatting utilities
 
-        internal static string Clean_String(string txt)
+        internal static string CleanString(string txt)
         {
             StringBuilder sb = new StringBuilder(txt);
 
             return sb.Replace("\0", string.Empty).ToString();
         }
 
-        internal static string Name_Cleanup(string FileName)
+        internal static string NameCleanup(string fileName)
         {//It's frickin faster than Regex, tested with LINQPad 10000000 times, Regex about 11 secondes, between 0.4 and 0.8 secondes with this
 
-            StringBuilder sb = new StringBuilder(FileName);
+            StringBuilder sb = new StringBuilder(fileName);
 
             foreach (var ExString in ExcludedString)
             {
@@ -148,9 +148,9 @@ namespace FileManager
             return sb.ToString();
         }
 
-        internal static string FormatStringBasedOnRegex(string FileName, string StringMatch, char StringFormat)
+        internal static string FormatStringBasedOnRegex(string fileName, string stringMatch, char stringFormat)
         {
-            return Regex.Match(FileName, StringMatch).Value.PadLeft(2, StringFormat);
+            return Regex.Match(fileName, stringMatch).Value.PadLeft(2, stringFormat);
         }
 
         #endregion
@@ -188,11 +188,11 @@ namespace FileManager
 
         #region MD5Hash
         //Be aware of MD5 collision
-        internal static string ComputeMD5Hash(string FilePath)
+        internal static string ComputeMD5Hash(string filePath)
         {
             using (var md5 = MD5.Create())
             {
-                using (var stream = File.OpenRead(FilePath))
+                using (var stream = File.OpenRead(filePath))
                 {
                     return BitConverter.ToString(md5.ComputeHash(stream));
                 }

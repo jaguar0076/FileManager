@@ -18,11 +18,11 @@ namespace FileManager
 
         #region Calculate folder size
 
-        private static long DirectorySize(DirectoryInfo dInfo, string[] FileExtensions)
+        private static long DirectorySize(DirectoryInfo dInfo, string[] fileExtensions)
         {
-            long totalSize = dInfo.EnumerateFiles().Where(file => FileExtensions.Contains(file.Extension.ToLower())).Sum(file => file.Length);
+            long totalSize = dInfo.EnumerateFiles().Where(file => fileExtensions.Contains(file.Extension.ToLower())).Sum(file => file.Length);
 
-            totalSize += dInfo.EnumerateDirectories().Sum(dir => DirectorySize(dir, FileExtensions));
+            totalSize += dInfo.EnumerateDirectories().Sum(dir => DirectorySize(dir, fileExtensions));
 
             return totalSize;
         }
@@ -32,18 +32,18 @@ namespace FileManager
         #region Process Xml
 
         // TODO: interesting to use Reflexion here to define a list of dynamics paramaters
-        internal static void CollectXmlFileInfo(ref XElement Xnode, FileInfo file)
+        internal static void CollectXmlFileInfo(ref XElement xNode, FileInfo file)
         {
             using (var filetag = TagLib.File.Create(file.FullName))
             {
                 XElement XEl = (new XElement("File", //File node
                          new XAttribute("FilePath", file.FullName), //file path including the file name
-                         new XAttribute("MediaTitle", Utils.Clean_String(filetag.Tag.Title ?? file.Name)),//the title of the song
+                         new XAttribute("MediaTitle", Utils.CleanString(filetag.Tag.Title ?? file.Name)),//the title of the song
                          new XAttribute("MediaExtension", file.Extension), // the extension of the file
                          new XAttribute("MediaTrack", filetag.Tag.Track != 0 ? filetag.Tag.Track.ToString("D2") : Utils.FormatStringBasedOnRegex(file.Name, @"\d+", '0')), //the track number
-                         new XAttribute("MediaAlbum", Utils.Clean_String(filetag.Tag.Album ?? "Undefined")), // the album of the song
+                         new XAttribute("MediaAlbum", Utils.CleanString(filetag.Tag.Album ?? "Undefined")), // the album of the song
                          new XAttribute("MediaYear", filetag.Tag.Year != 0 ? filetag.Tag.Year.ToString() : "Undefined"), // the year of the song
-                         new XAttribute("MediaArtists", Utils.Clean_String(string.Join(",", filetag.Tag.Performers ?? filetag.Tag.AlbumArtists) ?? "Undefined")), // the artists of the song
+                         new XAttribute("MediaArtists", Utils.CleanString(string.Join(",", filetag.Tag.Performers ?? filetag.Tag.AlbumArtists) ?? "Undefined")), // the artists of the song
                          new XAttribute("MediaGenres", string.Join(",", filetag.Tag.Genres) ?? "Undefined"),
                          new XAttribute("MD5Hash", Utils.ComputeMD5Hash(file.FullName)) // MD5 Hash of the file
                              ));
@@ -51,7 +51,7 @@ namespace FileManager
                 //add a thread to process the Serialization
                 XFInfoList.Add(FromXElement(XEl));
 
-                Xnode.Add(XEl);
+                xNode.Add(XEl);
             }
         }
 
@@ -66,27 +66,27 @@ namespace FileManager
         }
 
         //Gather file informations and exclude corrupted files
-        private static void ComputeFileInfo(FileInfo[] Flist, ref XElement Xnode, List<FileInfo> FileEx, List<FileInfo> AlreadyProcessedFiles, string[] FileExtensions)
+        private static void ComputeFileInfo(FileInfo[] fList, ref XElement xNode, List<FileInfo> fileEx, List<FileInfo> alreadyProcessedFiles, string[] fileExtensions)
         {
-            foreach (var file in Flist.Except(AlreadyProcessedFiles).Except(FileEx)) //Exclude already treated ones and bad files
+            foreach (var file in fList.Except(alreadyProcessedFiles).Except(fileEx)) //Exclude already treated ones and bad files
             {
                 try
                 {
-                    CollectXmlFileInfo(ref Xnode, file);
+                    CollectXmlFileInfo(ref xNode, file);
 
-                    AlreadyProcessedFiles.Add(file);
+                    alreadyProcessedFiles.Add(file);
                 }
                 catch
                 {
-                    FileEx.Add(file);
+                    fileEx.Add(file);
 
-                    ComputeFileInfo(Flist, ref Xnode, FileEx, AlreadyProcessedFiles, FileExtensions);
+                    ComputeFileInfo(fList, ref xNode, fileEx, alreadyProcessedFiles, fileExtensions);
                 }
             }
         }
 
         //main function, returns the XML of a entire directory (subdirectories included)
-        internal static XElement GetDirectoryXml(String dir, string[] FileExtensions)
+        internal static XElement GetDirectoryXml(String dir, string[] fileExtensions)
         {
             //Create DirectoryInfo
             DirectoryInfo Dir = new DirectoryInfo(dir);
@@ -101,15 +101,15 @@ namespace FileManager
             var info = new XElement("Root");
 
             //Gather file information
-            ComputeFileInfo(Dir.EnumerateFiles().Where(f => FileExtensions.Contains(f.Extension.ToLower())).ToArray(),
+            ComputeFileInfo(Dir.EnumerateFiles().Where(f => fileExtensions.Contains(f.Extension.ToLower())).ToArray(),
                             ref info,
                             BadFiles,
                             AlreadyProcessedFiles,
-                            FileExtensions);
+                            fileExtensions);
 
             foreach (var subDir in Dir.EnumerateDirectories())
             {
-                info.Add(GetDirectoryXml(subDir.FullName, FileExtensions));
+                info.Add(GetDirectoryXml(subDir.FullName, fileExtensions));
             }
 
             return info;

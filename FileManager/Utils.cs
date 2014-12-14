@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -195,6 +197,60 @@ namespace FileManager
                 using (var stream = File.OpenRead(filePath))
                 {
                     return BitConverter.ToString(md5.ComputeHash(stream));
+                }
+            }
+        }
+
+        #endregion
+
+        #region Compute Dynamic level
+
+        internal static void ComputeLevel<T>(int curPos, int maxLvl, string curArgLvl, List<T> fileList, params string[] args)
+        {
+            //Store current iteration
+            int pos = curPos;
+
+            //Check if the maxLvl is set, if not we initialize it with the number of parameters
+            if (maxLvl == 0)
+            {
+                maxLvl = (args.Length);
+            }
+
+            //Check if we reach the maximum allowed iteration 
+            if (pos < maxLvl)
+            {
+                //Set current parameter
+                curArgLvl = args[curPos];
+
+                SaveLogFile(MethodBase.GetCurrentMethod(), new Exception(curArgLvl)); 
+
+                //Increase current position value
+                pos++;
+
+                //Group by current level and recursive call of the method
+                foreach (var CurFileInfo in fileList.GroupBy(i => CheckGetPropertyValue(i, curArgLvl))
+                                                    .OrderBy(g => g.Key)
+                                                    .Select(g => g.Key))
+                {
+                    SaveLogFile(MethodBase.GetCurrentMethod(), new Exception(CurFileInfo)); 
+
+                    ComputeLevel(pos, maxLvl, curArgLvl, fileList.Where(i => CheckGetPropertyValue(i, curArgLvl) == CurFileInfo).ToList(), args);
+                }
+            }
+            else
+            {
+                foreach (var file in fileList)
+                {
+                    DbUtils.ExecuteNonQuery("INSERT INTO File(path, title, extension, track, album, year, artists, genres, hash) values (?,?,?,?,?,?,?,?,?)",
+                                            CheckGetPropertyValue(file, "FilePath"),
+                                            CheckGetPropertyValue(file, "MediaTitle"),
+                                            CheckGetPropertyValue(file, "MediaExtension"),
+                                            CheckGetPropertyValue(file, "MediaTrack"),
+                                            CheckGetPropertyValue(file, "MediaAlbum"),
+                                            CheckGetPropertyValue(file, "MediaYear"),
+                                            CheckGetPropertyValue(file, "MediaArtists"),
+                                            CheckGetPropertyValue(file, "MediaGenres"),
+                                            CheckGetPropertyValue(file, "MD5Hash"));
                 }
             }
         }

@@ -92,7 +92,7 @@ namespace FileManager
             }
         }
 
-        public static void ExecuteNonQuery(string sql)
+        internal static void ExecuteNonQuery(string sql)
         {
             SQLiteCommand command = new SQLiteCommand(sql, GetConnection());
 
@@ -106,7 +106,7 @@ namespace FileManager
             { Utils.SaveLogFile(MethodBase.GetCurrentMethod(), e); }
         }
 
-        public static void ExecuteNonQuery(string sql, params object[] args)
+        internal static void ExecuteNonQuery(string sql, params object[] args)
         {
             SQLiteCommand command = new SQLiteCommand(sql, GetConnection());
 

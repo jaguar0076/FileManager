@@ -46,7 +46,7 @@ namespace FileManager
                          new XAttribute("MediaArtists", Utils.CleanString(string.Join(",", filetag.Tag.Performers ?? filetag.Tag.AlbumArtists) ?? "Undefined")), // the artists of the song
                          new XAttribute("MediaGenres", string.Join(",", filetag.Tag.Genres) ?? "Undefined"),
                          new XAttribute("MD5Hash", Utils.ComputeMD5Hash(file.FullName)) // MD5 Hash of the file
-                             ));
+                               ));
 
                 //add a thread to process the Serialization
                 XFInfoList.Add(FromXElement(XEl));

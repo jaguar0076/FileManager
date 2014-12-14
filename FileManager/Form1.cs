@@ -16,6 +16,8 @@ namespace FileManager
 
         private static string[] FileExtensions = { ".mp3", ".wma", ".m4a", ".flac", ".ogg", ".alac", ".aiff" };
 
+        private static string[] LevelList = { "MediaYear", "MediaGenres", "MediaArtists", "MediaAlbum" };
+
         private Thread MyThread;
 
         private FileSystemWatcher Watcher;
@@ -38,7 +40,7 @@ namespace FileManager
         {
             InitializeComponent();
 
-            InitializeWatcher();
+            //InitializeWatcher();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -129,6 +131,16 @@ namespace FileManager
 
             DbUtils.ExecuteNonQuery("CREATE INDEX IF NOT EXISTS idx2_File_year ON File(year)");
 
+            Utils.ComputeLevel(0, 0, "", ProcessXml.XFInfoList, LevelList);
+
+            DbUtils.CloseConnection();
+
+            /*DbUtils.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS File (file_id INTEGER PRIMARY KEY AUTOINCREMENT, path VARCHAR(200), title VARCHAR(100), extension VARCHAR(4), track VARCHAR(4), album VARCHAR(100), year VARCHAR(4), artists VARCHAR(200), genres VARCHAR(50), hash VARCHAR(200) UNIQUE)");
+
+            DbUtils.ExecuteNonQuery("CREATE INDEX IF NOT EXISTS idx1_File_hash ON File(hash)");
+
+            DbUtils.ExecuteNonQuery("CREATE INDEX IF NOT EXISTS idx2_File_year ON File(year)");
+
             string CurrentDirectory = Directory.GetCurrentDirectory();
 
             foreach (var CurrMediaYear in ProcessXml.XFInfoList
@@ -136,7 +148,7 @@ namespace FileManager
                                   .OrderBy(g => g.Key)
                                   .Select(g => g.Key))
             {
-                Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear);
+                //Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear);
 
                 foreach (var CurrMediaArtists in ProcessXml.XFInfoList
                           .Where(i => i.MediaYear == CurrMediaYear)
@@ -144,7 +156,7 @@ namespace FileManager
                           .OrderBy(g => g.Key)
                           .Select(g => g.Key))
                 {
-                    Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear + "\\" + Utils.NameCleanup(CurrMediaArtists));
+                    //Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear + "\\" + Utils.NameCleanup(CurrMediaArtists));
 
                     foreach (var CurrAlbum in ProcessXml.XFInfoList
                           .Where(i => i.MediaYear == CurrMediaYear
@@ -153,7 +165,7 @@ namespace FileManager
                           .OrderBy(g => g.Key)
                           .Select(g => g.Key))
                     {
-                        Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear + "\\" + Utils.NameCleanup(CurrMediaArtists) + "\\" + Utils.NameCleanup(CurrAlbum));
+                        //Directory.CreateDirectory(CurrentDirectory + "\\" + CurrMediaYear + "\\" + Utils.NameCleanup(CurrMediaArtists) + "\\" + Utils.NameCleanup(CurrAlbum));
 
                         foreach (var CurrFile in ProcessXml.XFInfoList
                           .Where(i => i.MediaYear == CurrMediaYear
@@ -173,21 +185,21 @@ namespace FileManager
                             DbUtils.ExecuteNonQuery("INSERT INTO File(path, title, extension, track, album, year, artists, genres, hash) values (?,?,?,?,?,?,?,?,?)",
                                                     CurrFile.FilePath, CurrFile.MediaTitle, CurrFile.MediaExtension, CurrFile.MediaTrack, CurrFile.MediaAlbum, CurrFile.MediaYear, CurrFile.MediaArtists, CurrFile.MediaGenres, CurrFile.MD5Hash);
 
-                            Invoke(new SetText(AppendText), "Copying to " + NewFile + " (" + CurrFile.MediaGenres + ")", textBox1);
+                            //Invoke(new SetText(AppendText), "Copying to " + NewFile + " (" + CurrFile.MediaGenres + ")", textBox1);
 
                             //Exception occurs when a file is renamed
 
-                            System.IO.File.Copy(CurrFile.FilePath, NewFile, true);
+                            //System.IO.File.Copy(CurrFile.FilePath, NewFile, true);
 
-                            FileInfo fileInfo = new FileInfo(NewFile);
+                            //FileInfo fileInfo = new FileInfo(NewFile);
 
-                            fileInfo.IsReadOnly = false;
+                            //fileInfo.IsReadOnly = false;
                         }
                     }
                 }
             }
 
-            DbUtils.CloseConnection();
+            DbUtils.CloseConnection();*/
         }
 
         #endregion
